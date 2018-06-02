@@ -1,93 +1,90 @@
 using UnityEngine;
-using System.Collections;
 using System;
 
 public class TowerCamera : MonoBehaviour
 {
-	// Enums & constants
-	public enum					eStates { Gameplay, Menu };													// Behaviour states
-	public enum					eRotation { Idle, Clockwise, AntiClockwise };								// Rotating behaviour
-	
-	// Public variables
-	public float				gRotateSpeed = 360.0f;														// Rotation in degrees per second
-	public float				gLerpSpeed = 0.3f;															// Speed for lerping towards target position
-	public eRotation			gRotState;																	// Current rotation behaviour
+	public enum GameStates { Gameplay, Menu };					// Behaviour states
+	enum RotationStates { Idle, Clockwise, AntiClockwise };		// Rotating behaviour
 
-	// Public (non-editor) variables
-	[HideInInspector]
-	public GameObject			gGameObjectJustTapped;														// Which GameObject (if any) has just been tapped
-	[HideInInspector]
-	public eStates				gState { get; private set; }												// Current behaviour
-	[HideInInspector]
-	public float				gTargetRotation;															// Target rotation in degrees
-	
-	// Private variables
-	private float				gRotation;																	// Unwrapped rotation in degrees, ie. not wrapped to [0..360)
-	private float				gPivotRadius;																// Radius of orbit spinning around the the tower
-	private bool				gIsLerping;																	// When true, camera position is lerping towards target position
-	private Vector3				gTargetPosition;															// Positon to lerp towards
+	#region Inspector variables
 
-	// Helper/inline functions
-	public void					SetBackgroundColor(Color color) { GetComponent<Camera>().backgroundColor = color; }
+	[SerializeField] float rotateSpeed = 270.0f;				// Rotation in degrees per second
+	[SerializeField] float lerpSpeed = 0.3f;					// Speed for lerping towards target position
+	[SerializeField] Camera myCam = null;						// Cached camera
 
-	// Instance
-    public static TowerCamera	gInstance { get; private set; }
-	
-	
-	/// <summary> Changes state and reacts accordingly </summary>
-	/// <param name='newState'> eStates.... state name </param>
-	public void SetState(eStates newState)
-	{
-		gState = newState;
-		switch (gState)
-		{
-			case eStates.Gameplay:
-				transform.position = gTargetPosition;
-				gIsLerping = false;
-				break;
-			
-			case eStates.Menu:
-				break;
-			
-			default:
-				throw new Exception("Unhandled state "+gState);
-		}
-	}
+	#endregion	// Inspector variables
 
+	RotationStates rotationState;								// Current rotation behaviour
+	GameStates gameState;										// Current behaviour
+	public float targetAngle;									// Target rotation (degrees)
+	float rawAngle;												// Unwrapped rotation, ie. not wrapped to [0..360)
+	float pivotRadius;											// Radius of orbit spinning around the the tower
+	Vector3 targetPosition;										// Positon to lerp towards
+	bool isLerping;												// True when lerping towards target position
 
-	/// <summary> Called when object/script initiates </summary>
+	/// <summary> Singleton instance </summary>
+	public static TowerCamera Instance { get; private set; }
+
+	/// <summary> Called when object/script activates </summary>
 	void Awake()
 	{
-		gInstance = this;
-		gTargetPosition = transform.position;
-		gIsLerping = false;
-		SetState(eStates.Menu);
-	}
+		if (Instance != null)
+			throw new UnityException("Singleton instance already exists");
+		Instance = this;
 
+		targetPosition = transform.position;
+		isLerping = false;
+		SetState(GameStates.Menu);
+	}
 
 	/// <summary> Called once per frame </summary>
 	void Update()
 	{
 		float dTime = Time.deltaTime;
 
-		switch (gState)
+		switch (gameState)
 		{
-			case eStates.Gameplay:
-				UpdateMouseOverObject();
+			case GameStates.Gameplay:
 				UpdateRotation(dTime);
 				break;
 			
-			case eStates.Menu:
-				UpdateMouseOverObject();
-				if (gIsLerping) { UpdateLerping(); }
+			case GameStates.Menu:
+				if (isLerping)
+					UpdateLerping();
 				UpdateRotation(dTime);
 				break;
 
 			default:
-				throw new Exception("Unhandled camera state: "+gState);
+				throw new Exception("Unhandled camera state: "+gameState);
 		}
 	}
 
+	/// <summary> Changes state and reacts accordingly </summary>
+	/// <param name='newState'> eStates.... state name </param>
+	public void SetState(GameStates newState)
+	{
+		gameState = newState;
+		switch (gameState)
+		{
+			case GameStates.Gameplay:
+				transform.position = targetPosition;
+				isLerping = false;
+				break;
+			
+			case GameStates.Menu:
+				break;
+			
+			default:
+				throw new Exception("Unhandled state "+gameState);
+		}
+	}
+
+	/// <summary> Changes the color of the background </summary>
+	/// <param name="_color"> New colour </param>
+	public void SetBackgroundColor(Color _color)
+	{
+		myCam.backgroundColor = _color;
+	}
 
 	/// <summary> Updates the position from the tower's size </summary>
 	public void RefreshPosition()
@@ -102,146 +99,97 @@ public class TowerCamera : MonoBehaviour
 		{
 			minPivotDist = -6.0f;
 		}
-		gPivotRadius = minPivotDist - (Tower.gInstance.gBlockScale * Tower.gInstance.gRows);
-		gTargetPosition = new Vector3(transform.position.x, height, transform.position.z);
-		gIsLerping = true;
-	}
-	
-	
-	/// <summary> Updates which GameObject the mouse is over </summary>
-	private void UpdateMouseOverObject()
-	{
-		bool tapped = false;
-#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBPLAYER
-		if (Input.GetMouseButtonDown(0))
-		{
-			tapped = true;
-			ScreenTapped(Input.mousePosition);
-		}
-#else
-		for (int i = 0; i < Input.touchCount; ++i)
-		{
-			Touch touch = Input.touches[i];
-			if (touch.phase == TouchPhase.Began)
-			{
-				tapped = true;
-				ScreenTapped(new Vector3(touch.position.x, touch.position.y, 0.0f));
-			}
-		}
-#endif
-
-		// Screen not tapped?
-		if (!tapped)
-		{
-			gGameObjectJustTapped = null;
-		}
+		pivotRadius = minPivotDist - (Tower.gInstance.gBlockScale * Tower.gInstance.gRows);
+		targetPosition = new Vector3(transform.position.x, height, transform.position.z);
+		isLerping = true;
 	}
 
-
-	/// <summary> What to do when the screen was tapped </summary>
-	/// <param name="inputPos"> Input position </param>
-	private void ScreenTapped(Vector3 inputPos)
-	{
-		Ray ray = GetComponent<Camera>().ScreenPointToRay(inputPos);
-		RaycastHit hit;
-		
-		if (Physics.Raycast(ray, out hit))
-		{
-			gGameObjectJustTapped = hit.transform.gameObject;
-		}
-	}
-	
-	
 	/// <summary> Updates the camera's position, lerping towards the target position </summary>
 	private void UpdateLerping()
 	{
-		transform.position = new Vector3(	Mathf.Lerp(transform.position.x, gTargetPosition.x, gLerpSpeed),
-											Mathf.Lerp(transform.position.y, gTargetPosition.y, gLerpSpeed), 
-											Mathf.Lerp(transform.position.z, gTargetPosition.z, gLerpSpeed));
-		if ((gTargetPosition - transform.position).magnitude < 0.1f)
+		transform.position = new Vector3(	Mathf.Lerp(transform.position.x, targetPosition.x, lerpSpeed),
+											Mathf.Lerp(transform.position.y, targetPosition.y, lerpSpeed), 
+											Mathf.Lerp(transform.position.z, targetPosition.z, lerpSpeed));
+		if ((targetPosition - transform.position).magnitude < 0.1f)
 		{
-			transform.position = gTargetPosition;
-			gIsLerping = false;
+			transform.position = targetPosition;
+			isLerping = false;
 		}
 	}
-	
 
 	/// <summary> Resets the rotation back to the starting angle </summary>
 	public void ResetRotation()
 	{
-		gRotation = gTargetRotation = -(180.0f / (float)Tower.gInstance.gColumns);
-		gRotState = eRotation.AntiClockwise;
+		rawAngle = targetAngle = -(180.0f / (float)Tower.gInstance.gColumns);
+		rotationState = RotationStates.AntiClockwise;
 	}
-	
 
 	/// <summary> Starts pivot-rotating towards the specified angle </summary>
 	/// <param name='angle'> Angle in degrees </param>
 	public void RotateTowards(float angle)
 	{
-		gTargetRotation = angle;
+		targetAngle = angle;
 		
 		// Handle 360 degree wrap around
-		if (gTargetRotation - gRotation > 180.0f)
+		if (targetAngle - rawAngle > 180.0f)
 		{
-			gRotation += 360.0f;
+			rawAngle += 360.0f;
 		}
-		else if (gRotation - gTargetRotation > 180.0f)
+		else if (rawAngle - targetAngle > 180.0f)
 		{
-			gRotation -= 360.0f;
+			rawAngle -= 360.0f;
 		}
 
-		gRotState = (gTargetRotation > gRotation) ? eRotation.AntiClockwise : eRotation.Clockwise;
+		rotationState = (targetAngle > rawAngle) ? RotationStates.AntiClockwise : RotationStates.Clockwise;
 	}
-
 
 	/// <summary> Rotates the tower towards the current selection </summary>
 	/// <param name='dTime'> Time elapsed since last Update() </param>
 	private void UpdateRotation(float dTime)
 	{
-		switch (gRotState)
+		switch (rotationState)
 		{
-			case eRotation.Idle:
+			case RotationStates.Idle:
 				break;
 			
-			case eRotation.Clockwise:
-				gRotation -= gRotateSpeed * dTime;
-				if (gRotation < gTargetRotation)
+			case RotationStates.Clockwise:
+				rawAngle -= rotateSpeed * dTime;
+				if (rawAngle < targetAngle)
 				{
-					gRotation = gTargetRotation;
-					gRotState = eRotation.Idle;
+					rawAngle = targetAngle;
+					rotationState = RotationStates.Idle;
 				}
 				UpdatePivot();
 				break;
 			
-			case eRotation.AntiClockwise:
-				gRotation += gRotateSpeed * dTime;
-				if (gRotation > gTargetRotation)
+			case RotationStates.AntiClockwise:
+				rawAngle += rotateSpeed * dTime;
+				if (rawAngle > targetAngle)
 				{
-					gRotation = gTargetRotation;
-					gRotState = eRotation.Idle;
+					rawAngle = targetAngle;
+					rotationState = RotationStates.Idle;
 				}
 				UpdatePivot();
 				break;
 			
 			default:
-				throw new Exception("Unhandled tower state: "+gRotState);
+				throw new Exception("Unhandled tower state: "+rotationState);
 		}
 	}
 	
-	
 	/// <summary> Updates the pivoted position & angle </summary>
-	private void UpdatePivot()
+	void UpdatePivot()
 	{
-		float angleRad = (gRotation + 180.0f) * Mathf.PI / 180.0f;
-		gTargetPosition = new Vector3(gPivotRadius * Mathf.Sin(angleRad), gTargetPosition.y, gPivotRadius * Mathf.Cos(angleRad));
-		if (gState == eStates.Menu)
+		float angleRad = (rawAngle + 180.0f) * Mathf.PI / 180.0f;
+		targetPosition = new Vector3(pivotRadius * Mathf.Sin(angleRad), targetPosition.y, pivotRadius * Mathf.Cos(angleRad));
+		if (gameState == GameStates.Menu)
 		{
-			gIsLerping = true;
+			isLerping = true;
 		}
 		else
 		{
-			transform.position = gTargetPosition;
+			transform.position = targetPosition;
 		}
-		transform.eulerAngles = new Vector3(0.0f, gRotation + 180, 0.0f);
+		transform.eulerAngles = new Vector3(0.0f, rawAngle + 180, 0.0f);
 	}
 }

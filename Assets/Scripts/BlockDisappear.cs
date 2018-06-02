@@ -22,7 +22,7 @@ public class BlockDisappear : MonoBehaviour
 
 		// Match pos/rot/scale of original block
 		Transform trans = gameObj.transform;
-		Transform blockTrans = block.mGameObj.transform;
+		Transform blockTrans = block.gameObj.transform;
 		trans.parent = blockTrans.parent;
 		trans.localPosition = blockTrans.localPosition;
 		trans.localRotation = blockTrans.localRotation;

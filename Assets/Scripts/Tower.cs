@@ -1,26 +1,23 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System;
 
-public class Tower : MonoBehaviour
+public partial class Tower : MonoBehaviour
 {
 	// Enums & constants
-	public enum								eGameModes { Original, Arcade, TimeChallenge, SpeedChallenge, ScoreChallenge };
-	public enum								eControlMethods { TouchButtons, SwipeTower, SwipeSelector };
-	private enum							eLCStates { None, Popup, JarCount, JarPause, FullJarCount, FinalPause };
-	private enum							eGameOverTypes { PlayerDied, TimeOrSpeedChallengeComplete, ScoreChallengeComplete };
-	private static readonly Vector3			kLevelProgressBarVecGreen = new Vector3(0.0f, 0.8f, 0.0f);
-	private static readonly Vector3			kLevelProgressBarVecRed = new Vector3(1.0f, 0.0f, 0.0f);
-	private const string					kJarBonusString ="Ring Bonus: ";
-	private const string					kJarFullString ="\nAll Rings! ";
-	private const string					kJarFullStringPlus ="\nAll Rings! +";
-	private const string					kJarFullTitleString ="ALL RINGS!";
-	
+	public enum								GameModes { Original, Arcade, TimeChallenge, SpeedChallenge, ScoreChallenge };
+	public enum								ControlMethods { TouchButtons, SwipeTower, SwipeSelector };
+	private enum							LevelStates { None, Popup, JarCount, JarPause, FullJarCount, FinalPause };
+	private enum							GameOverTypes { PlayerDied, TimeOrSpeedChallengeComplete, ScoreChallengeComplete };
+	private static readonly Vector3			levelProgressBarVecGreen = new Vector3(0.0f, 0.8f, 0.0f);
+	private static readonly Vector3			levelProgressBarVecRed = new Vector3(1.0f, 0.0f, 0.0f);
+	private const string					jarBonusString ="Ring Bonus: ";
+	private const string					jarFullString ="\nAll Rings! ";
+	private const string					jarFullStringPlus ="\nAll Rings! +";
+	private const string					jarFullTitleString ="ALL RINGS!";
+
 	// Public variables
-	public GameObject[]						gBlockPrefabsSolid;												// Different blocks to use
-	public GameObject[]						gBlockPrefabsTransparent;										// Different blocks to use
-	public AudioClip[]						gBlockLandAudioClips;											// Audio clips for different types of blocks landing
+	public BlockDefinition[]				blockDefs;								// Data for block types
 	public float							gTowerRadius = 4.0f;											// Radius of tower
 	public int								gLevelMin = 1;													// Which level is considered lowest level
 	public int								gLevelMax = 33;													// Which level is considered top level
@@ -43,16 +40,12 @@ public class Tower : MonoBehaviour
 	public float							gSelectorSwapAnimSpeed = 9.0f;									// Speed of the selector's swap anim, in loops per second
 	public GameObject						gSelectorLeft;													// Half of the selector for swapping blocks
 	public GameObject						gSelectorRight;													// Half of the selector for swapping blocks
-	public FrontendMenu						gFrontendMenuScript;											// Menu GUI for selecting starting level, speed etc
 	public GameObject						gReleaseNotesObject;											// Menu GUI for selecting starting level, speed etc
-	public MenuButton						gFrontendMenuCubeStart;											// "Start new game" menu item's script
-	public MenuButton						gFrontendMenuCubeResume;										// "Continue previous game" menu item's script
 	public GameObject						gPopupWindowObject;												// Popup window for Game Over, Pause, Level Complete, etc
 	public GameObject						gGameOverObject;												// Appears when the game's over
 	public TextMesh							gGameOverObjectTitleTextMesh;									// Appears when the game's over
 	public GameObject						gGameOverObjectHiScoreNameEntry;								// Sub-message saying you got a high score
 	public GameObject						gGameOverObjectHiScoreShare;									// Sub-message saying to press button / tap screen to continue
-	public MenuButton						gNameEntryTouchButtonScript;									// TouchButton script attached to name entry "textbox"
 	public GameObject						gPauseObject;													// Appears when the game is paused
 	public GameObject						gPauseSaveAndExitButton;										// "Save and Exit" button in Pause menu
 	public GameObject						gPauseExitNoSaveButton;											// "Quit Without Saving" button in Pause menu
@@ -121,12 +114,12 @@ public class Tower : MonoBehaviour
 	[HideInInspector]
 	public int								gLevelInt;														// Current level's integer value (not rounded up)
 	[HideInInspector]
-	public int								gBlockStyle;													// Appearance of blocks
+	public int								blockStyle;													// Appearance of blocks
 	[HideInInspector]
 	private Stack<Block>[]					gBlockPool;														// Used for recycling blocks, to avoid regular destroying & creating
 	public float							gStartingLevel { get; private set; }							// Speed / rate to start at
-	public eGameModes						gGameMode { get; private set; }									// Current type of gameplay
-	public eControlMethods					gControlMethod { get; private set; }							// Current control method (swipe, buttons, etc)
+	public GameModes						gGameMode { get; private set; }									// Current type of gameplay
+	public ControlMethods					gControlMethod { get; private set; }							// Current control method (swipe, buttons, etc)
 	public int								gHighScore { get; private set; }								// Record for the current starting level
 
 	// Private variables
@@ -138,7 +131,7 @@ public class Tower : MonoBehaviour
 	private float							gNewBlockAppearRate;											// How often (in seconds) new blocks appear
 	private float							gScoreDifficultyMult;											// Helper for calculating score depending on difficulty
 	private bool							gJoystickDirectionHeld;											// When true, a direction is being pressed
-	private eLCStates						gLCState;														// Current state of the "level complete" sequence
+	private LevelStates						gLCState;														// Current state of the "level complete" sequence
 	private float							gLCStateTime;													// Fixed time when the current state began
 	private float							gLCPrevTimeOffset;												// State's time offset last update/frame
 	private bool							gLCJarFull;														// True if jar was filled, false if level ended first
@@ -154,14 +147,11 @@ public class Tower : MonoBehaviour
 	private int								gPlayerBarAmount;												// Value of the player's progress bar
 	private Vector3							gPlayerBarColorTotal;											// All the colours dropped in, added together
 	private float							gProgressBarMaxScaleY;											// Scale of a full player/level progress bar
-	private GameObject						gFrontendMenuObject;											// Menu GUI for selecting starting level, speed etc
 
 	// Helper/inline functions
-	private int								GetTotalBlockTypes () { return gBlockPrefabsTransparent.Length; }
 	private int								BlockIdx(int col, int row) { return (row * gColumns) + col; }
 	private Block							GetBlock(int col, int row) { return gBlocks[BlockIdx(col, row)]; }
-	private GameObject						GetBlockPrefab(int blockIdx) { return ((gBlockStyle == 0) ? gBlockPrefabsSolid[blockIdx] : gBlockPrefabsTransparent[blockIdx]); }
-	private bool							IsBlockAboutToShiftDown(Block block) { return ((block.mRow != 0) && (GetBlock(block.mCol, block.mRow - 1) == null)); }
+	private bool							IsBlockAboutToShiftDown(Block block) { return ((block.row != 0) && (GetBlock(block.col, block.row - 1) == null)); }
 	private float							GetSelectorAngle() { return Block.CalcAngleDeg(gSelectorLeftCol + (gSelectorLeftCol + 1), gColumns * 2); }
 	private void							DeleteTemporaryObjects() { foreach (GameObject tempObject in GameObject.FindGameObjectsWithTag("TemporaryObject")) { GameObject.Destroy(tempObject); }	}
 	private float							GetLevelPercent() { return ((gLevel - Convert.ToSingle(gLevelMin)) / Convert.ToSingle(gLevelMax - gLevelMin)); }
@@ -170,100 +160,12 @@ public class Tower : MonoBehaviour
 	public bool								IsGamePaused() { return (IsGameFrozen() && (gPopupWindowObject == gPauseObject)); }
 	private bool							IsPlayerBarFull() { return (gPlayerBarAmount >= gPlayerBarCapacity); }
 	private void							SetScore(int score) { gScore = score; gGUITextScore.text = "Score:\n"+gScore; }
-	private bool							DoesGameModeSupportSaving() { return (gGameMode == eGameModes.Original); }
+	private bool							DoesGameModeSupportSaving() { return (gGameMode == GameModes.Original); }
 	public bool								ShowReleaseNotes() { return (PlayerPrefs.GetInt(Constants.kPPShowReleaseNotes + CurrentBundleVersion.Version, 1) == 1); }
 	public void								ShowReleaseNotesInFuture(bool show) { PlayerPrefs.SetInt(Constants.kPPShowReleaseNotes + CurrentBundleVersion.Version, show ? 1 : 0); }
 
 	// Instance
     public static Tower						gInstance { get; private set; }
-
-	#region Block class
-
-	/// <summary> Main class for a block in the 3D tower </summary>
-	public class Block
-	{
-		public GameObject					mGameObj;														// GameObject, or null if empty
-		public int							mBlockID;														// This block's ID, used for matching with other blocks
-		public int							mCol, mRow;														// Which column + row (0 = bottom) it's in
-		public float						mFallingOffset;													// Amount to fall before resting in this position (1.0f = 1 r)
-
-
-		/// <summary> Constructor </summary>
-		/// <param name='gameObj'> GameObject to use </param>
-		public Block(GameObject gameObj)
-		{
-			mGameObj = gameObj;
-		}
-
-
-		/// <summary> Sets up the block's column, row, 3D position, etc </summary>
-		/// <param name='blockID'> Block's ID, used for matching with other blocks</param>
-		/// <param name='towerTransform'> Pointer to the tower's main transform </param>
-		/// <param name='totalCols'> Total columns in the tower </param>
-		/// <param name='radius'> Radius of the tower </param>
-		/// <param name='scale'> Scale for the transform </param>
-		/// <param name='col'> Column in the tower </param>
-		/// <param name='row'> Row (0 = bottom row) in the tower </param>
-		public void Setup(int blockID, Transform towerTransform, int totalCols, float radius, float scale, int col, int row)
-		{
-			float angleDeg = CalcAngleDeg(col, totalCols);
-
-			mBlockID = blockID;
-			mCol = col;
-			mRow = row;
-			mGameObj.transform.parent = towerTransform;
-			mGameObj.transform.localEulerAngles = new Vector3(0.0f, angleDeg, 0.0f);
-			mGameObj.transform.localPosition = CalcPosition(col, row, angleDeg, radius, scale);
-			mGameObj.transform.localScale = new Vector3(scale, scale, scale);
-		}
-		
-		
-		/// <summary> Calculates the position of a block. </summary>
-		/// <param name='col'> Column in the tower </param>
-		/// <param name='row'> Row (0 = bottom row) in the tower </param>
-		/// <param name='angleDeg'> Angle in degrees </param>
-		/// <param name='radius'> Radius of the tower </param>
-		/// <param name='scale'> Scale for the transform </param>
-		/// <returns> The (relative) position of the block in 3D space </returns>
-		public static Vector3 CalcPosition(int col, int row, float angleDeg, float radius, float scale)
-		{
-			float angleRad = angleDeg * (2.0f * Mathf.PI) / 360.0f;
-			return new Vector3(Mathf.Sin(angleRad) * radius, row * scale, Mathf.Cos(angleRad) * radius);
-		}
-		
-		
-		/// <summary> Calculates the block's y rotation angle in degrees </summary>
-		/// <param name='col'> Column in the tower </param>
-		/// <param name='totalCols'> Total columns in the tower </param>
-		/// <returns> The y rotation angle (in degrees) </returns>
-		public static float CalcAngleDeg(int col, int totalCols) { return (col * 360 / totalCols); }
-		
-		/// <summary> Checks for colour match and valid react state </summary>
-		/// <param name='blockID'> ID to check against </param>
-		/// <returns> True if the colour matches and it's in a state to react </returns>
-		public bool CheckForMatch(int blockID)
-		{
-			return ((mFallingOffset == 0.0f) && (mBlockID == blockID));
-		}
-
-
-		/// <summary> Returns the colour of either the solid block or of the inside shape </summary>
-		/// <returns> Colour </returns>
-		public Color GetMainColor()
-		{
-			Transform insideShapeTrans = mGameObj.transform.Find("InsideShape");
-			if (insideShapeTrans != null)
-			{
-				return insideShapeTrans.GetComponent<Renderer>().material.color;
-			}
-			else
-			{
-				return mGameObj.GetComponent<Renderer>().material.color;
-			}
-		}
-	}
-
-	#endregion	// Block class
 
 	#region Block pool
 	
@@ -289,8 +191,10 @@ public class Tower : MonoBehaviour
 		else
 		{
 			// Create new block from prefab
-			GameObject gameObj = GameObject.Instantiate(GetBlockPrefab(blockID)) as GameObject;
-			Block block = new Block(gameObj);
+			BlockDefinition blockDef = blockDefs[blockID];
+			GameObject prefab = (blockStyle == 0) ? blockDef.prefabSolid : blockDef.prefabWithInnerShape;
+			GameObject gameObj = Instantiate(prefab) as GameObject;
+			Block block = new Block(gameObj, blockDefs[blockID]);
 			block.Setup(blockID, transform, gColumns, gTowerRadius, gBlockScale, col, row);
 			return block;
 		}
@@ -301,8 +205,8 @@ public class Tower : MonoBehaviour
 	/// <param name="block"> Block to add </param>
 	public void RecycleBlock(Block block)
 	{
-		gBlockPool[block.mBlockID].Push(block);
-		block.mGameObj.transform.parent = gDisabledGameObjectPool;
+		gBlockPool[block.blockID].Push(block);
+		block.gameObj.transform.parent = gDisabledGameObjectPool;
 	}
 
 	public void EmptyRecyclePool()
@@ -311,7 +215,7 @@ public class Tower : MonoBehaviour
 		{
 			while (blockStack.Count > 0)
 			{
-				GameObject.Destroy(blockStack.Pop().mGameObj);
+				GameObject.Destroy(blockStack.Pop().gameObj);
 			}
 		}
 	}
@@ -322,9 +226,7 @@ public class Tower : MonoBehaviour
 	void Awake()
 	{
 		gInstance = this;
-		gFrontendMenuObject = gFrontendMenuScript.gameObject;
-		gFrontendMenuObject.SetActive(true);
-		gBlockStyle = PlayerPrefs.GetInt(Constants.kPPBlockStyle, 1);
+		blockStyle = PlayerPrefs.GetInt(Constants.kPPBlockStyle, 1);
 		gProgressBarMaxScaleY = gProgressBarPlayerBar.localScale.y;
 
 		PrepareObjectPools();
@@ -334,7 +236,7 @@ public class Tower : MonoBehaviour
 	/// <summary> Creates & prepares the stacks for recycling objects </summary>
 	private void PrepareObjectPools()
 	{
-		int blockPoolSize = GetTotalBlockTypes();
+		int blockPoolSize = blockDefs.Length;
 		gBlockPool = new Stack<Block>[blockPoolSize];
 		for (int i = 0; i < blockPoolSize; ++i)
 		{
@@ -346,41 +248,35 @@ public class Tower : MonoBehaviour
 	/// <summary> Called before the first Update() </summary>
 	void Start()
 	{
-#if FREE_VERSION
-		SetGameMode(eGameModes.Arcade);
-#else
-		SetGameMode(eGameModes.Original);
-#endif
+		SetGameMode(GameModes.Original);
 		ShowFrontendMenu();
-
-		gFrontendMenuScript.SetFrontendScreen(ShowReleaseNotes() ? FrontendMenu.eFrontendScreens.ReleaseNotes : FrontendMenu.eFrontendScreens.MainMenu);
 	}
 	
 
 	/// <summary> Sets a new game mode & performs any appropriate actions </summary>
 	/// <param name='gameMode'> eGameMode.... name </param>
-	public void SetGameMode(eGameModes gameMode)
+	public void SetGameMode(GameModes gameMode)
 	{
 		gGameMode = gameMode;
 		switch (gGameMode)
 		{
-			case eGameModes.Original:
+			case GameModes.Original:
 				SetStartingLevel(PlayerPrefs.GetInt(Constants.kPPStartingLevel, 1));
 				gLevelIncreaseRate = gLevelIncreaseRateFull;
 				break;
 		
-			case eGameModes.Arcade:
+			case GameModes.Arcade:
 				SetStartingLevel(1);
 				gLevelIncreaseRate = gLevelIncreaseRateArcade;
 				break;
 		
-			case eGameModes.TimeChallenge:
-			case eGameModes.SpeedChallenge:
+			case GameModes.TimeChallenge:
+			case GameModes.SpeedChallenge:
 				SetStartingLevel(PlayerPrefs.GetInt(Constants.kPPStartingLevel, 1));
 				gLevelIncreaseRate = 0;
 				break;
 		
-			case eGameModes.ScoreChallenge:
+			case GameModes.ScoreChallenge:
 				SetStartingLevel(PlayerPrefs.GetInt(Constants.kPPStartingLevel, 1));
 				gLevelIncreaseRate = gLevelIncreaseRateShorter;
 				break;
@@ -390,20 +286,20 @@ public class Tower : MonoBehaviour
 		}
 
 		// Prepare pause menu to only allow saving in Original mode
-		gPauseSaveAndExitButton.SetActive(gGameMode == eGameModes.Original);
-		gPauseExitNoSaveButton.SetActive(gGameMode == eGameModes.Original);
-		gPauseQuitButton.SetActive(gGameMode != eGameModes.Original);
+		gPauseSaveAndExitButton.SetActive(gGameMode == GameModes.Original);
+		gPauseExitNoSaveButton.SetActive(gGameMode == GameModes.Original);
+		gPauseQuitButton.SetActive(gGameMode != GameModes.Original);
 	}
 	
 	
 	/// <summary> Sets a new game mode & performs any appropriate actions </summary>
 	/// <param name='gameMode'> eGameMode.... name </param>
-	public void SetControlMethod(eControlMethods controlMethod)
+	public void SetControlMethod(ControlMethods controlMethod)
 	{
 		gControlMethod = controlMethod;
 
-		SetButtonControlsEnabled(gControlMethod == eControlMethods.TouchButtons);
-		SetSwipeControlsEnabled(gControlMethod != eControlMethods.TouchButtons);
+		SetButtonControlsEnabled(gControlMethod == ControlMethods.TouchButtons);
+		SetSwipeControlsEnabled(gControlMethod != ControlMethods.TouchButtons);
 
 		PlayerPrefs.SetInt(Constants.kPPControlMethod, (int)gControlMethod);
 		PlayerPrefs.Save();
@@ -502,7 +398,7 @@ public class Tower : MonoBehaviour
 	void RefreshHiScoreGUIString()
 	{
 		// Score
-		if ((gGameMode == eGameModes.TimeChallenge) || (gGameMode == eGameModes.SpeedChallenge))
+		if ((gGameMode == GameModes.TimeChallenge) || (gGameMode == GameModes.SpeedChallenge))
 		{
 			int milliseconds = gHighScore % 1000;
 			int seconds = (gHighScore / 1000) % 60;
@@ -561,7 +457,7 @@ public class Tower : MonoBehaviour
 		// Start rotated half a block left, so there's always a pair of blocks centered on the screen
 		if (createNewBlocks)
 		{
-			TowerCamera.gInstance.ResetRotation();
+			TowerCamera.Instance.ResetRotation();
 		}
 
 		// Set up starting blocks
@@ -570,7 +466,7 @@ public class Tower : MonoBehaviour
 		{
 			CreateRandomBlocks();
 		}
-		TowerCamera.gInstance.RefreshPosition();
+		TowerCamera.Instance.RefreshPosition();
 		gNewBlockTimer = gNewBlockAppearRate;
 		
 		// Initialise selector boxes
@@ -588,7 +484,7 @@ public class Tower : MonoBehaviour
 	public void ClearBlock(Block block, bool disappearAnim)
 	{
 		if (disappearAnim) { BlockDisappear.StartDisappearing(block); }
-		gBlocks[BlockIdx(block.mCol, block.mRow)] = null;
+		gBlocks[BlockIdx(block.col, block.row)] = null;
 		RecycleBlock(block);
 	}
 	
@@ -648,7 +544,7 @@ public class Tower : MonoBehaviour
 				{
 					int blockIdx = gRandom.Next() % gCurrentBlockTypes;
 					gBlocks[BlockIdx(col, row)] = GetNewBlock(blockIdx, transform, gColumns, gTowerRadius, gBlockScale, col, row);
-					GetBlock(col, row).mFallingOffset = (float)gRandom.NextDouble();
+					GetBlock(col, row).fallingOffset = (float)gRandom.NextDouble();
 				}
 				else
 				{
@@ -683,16 +579,16 @@ public class Tower : MonoBehaviour
 		gGUITextHiScore.gameObject.SetActive(true);
 		switch (gGameMode)
 		{
-			case eGameModes.Original:
-			case eGameModes.Arcade:
+			case GameModes.Original:
+			case GameModes.Arcade:
 				gGUITextScore.gameObject.SetActive(true);
 				gGUITextTime.gameObject.SetActive(false);
 				gProgressBarLevel.SetActive(true);
 				gProgressBarPlayer.SetActive(true);
 				break;
 				
-			case eGameModes.TimeChallenge:
-			case eGameModes.SpeedChallenge:
+			case GameModes.TimeChallenge:
+			case GameModes.SpeedChallenge:
 				gGUITextScore.gameObject.SetActive(false);
 				gGUITextTime.gameObject.SetActive(true);
 				gProgressBarLevel.SetActive(false);
@@ -700,7 +596,7 @@ public class Tower : MonoBehaviour
 				gTimeChallengeStartTime = Time.fixedTime;
 				break;
 				
-			case eGameModes.ScoreChallenge:
+			case GameModes.ScoreChallenge:
 				gGUITextScore.gameObject.SetActive(true);
 				gGUITextTime.gameObject.SetActive(false);
 				gProgressBarLevel.SetActive(true);
@@ -735,68 +631,29 @@ public class Tower : MonoBehaviour
 	}
 	
 	
-	/// <summary> Closes the popup window </summary>
-	public void ClosePopupWindow()
-	{
-		// Re-enable touch buttons if necessary
-		SetButtonControlsEnabled(gControlMethod == eControlMethods.TouchButtons);
-		
-		gPopupWindowObject.SetActive(false);
-	}
-	
-	
 	/// <summary> Called once per frame </summary>
 	void Update()
 	{
-		// Frontend menu active?
-		if (gFrontendMenuObject.activeSelf)
-		{
-			if (Input.GetKeyDown(KeyCode.Escape))
-			{
-				Debug.Log("Player has quit");
-				Application.Quit();
-			}
-		}
-		// Popup window active?
-		else if (gPopupWindowObject.activeSelf)
-		{
-			if (gGameOverObject.activeSelf) { UpdateGameOver(); }
-			else if (gPauseObject.activeSelf) { UpdatePause(); }
-			else if (gLevelCompleteObject.activeSelf) { UpdateLevelComplete(); }
-		}
-		// Normal gameplay
-		else
-		{
-			// Pause invoked?
-			if (Input.GetKeyDown(KeyCode.P) || Input.GetKeyDown(KeyCode.Escape))
-			{
-				PauseGame();
-			}
-			// Regular gameplay
-			else
-			{
-				float dTime = Time.deltaTime;
-				
-				UpdateKeyboard();
-				UpdateJoystick();
-				if (gControlMethod != eControlMethods.TouchButtons) { UpdateSwipes(); }
-				UpdateSelectorSwapAnim(dTime);
-				UpdateNewBlocks(dTime);
-				UpdateBlocks(dTime);
-				UpdateLevelProgress(dTime);
-				gRippleScript.UpdateEffect();
-	
-				// Filled bar?
-				if (IsPlayerBarFull())
-				{
-					// Ensure player bar has not overflowed
-					gPlayerBarAmount = gPlayerBarCapacity;
-					UpdateGameplayProgressBar(gProgressBarPlayerBar, 1.0f, gPlayerBarColorTotal / (float)(gPlayerBarAmount));
+		float dTime = Time.deltaTime;
+		
+		UpdateKeyboard();
+		UpdateJoystick();
+		if (gControlMethod != ControlMethods.TouchButtons) { UpdateSwipes(); }
+		UpdateSelectorSwapAnim(dTime);
+		UpdateNewBlocks(dTime);
+		UpdateBlocks(dTime);
+		UpdateLevelProgress(dTime);
+		gRippleScript.UpdateEffect();
 
-					// Trigger level complete sequence
-					LevelComplete();
-				}
-			}
+		// Filled bar?
+		if (IsPlayerBarFull())
+		{
+			// Ensure player bar has not overflowed
+			gPlayerBarAmount = gPlayerBarCapacity;
+			UpdateGameplayProgressBar(gProgressBarPlayerBar, 1.0f, gPlayerBarColorTotal / (float)(gPlayerBarAmount));
+
+			// Trigger level complete sequence
+			LevelComplete();
 		}
 
 #if UNITY_EDITOR
@@ -869,7 +726,6 @@ public class Tower : MonoBehaviour
 		RestoreSpeeds();
 		ResetScore();
 		CreateRandomBlocks();
-		ClosePopupWindow();
 		GameHasBegun();
 	}
 	
@@ -893,7 +749,6 @@ public class Tower : MonoBehaviour
 	public void UnpauseGame()
 	{
 		PauseDropsAndShockwaves(false);
-		ClosePopupWindow();
 		gBGMScript.UnpauseGameMusic();
 	}
 	
@@ -908,26 +763,26 @@ public class Tower : MonoBehaviour
 	
 	/// <summary> Starts the Game Over sequence </summary>
 	/// <param name='gameOverType'> eGameOverTypes.... value </param>
-	void GameOver(eGameOverTypes gameOverType)
+	void GameOver(GameOverTypes gameOverType)
 	{
 		bool savePlayerPrefs = false;
 
 		switch (gameOverType)
 		{
-			case eGameOverTypes.PlayerDied:
+			case GameOverTypes.PlayerDied:
 				gGameOverObjectTitleTextMesh.text = "GAME\nOVER";
 				gBGMScript.StartGameOverMusic();
 				if (DoesGameModeSupportSaving()) { PlayerPrefs.SetInt(Constants.kQSExists, 0); }
 				savePlayerPrefs = true;
 				break;
 			
-			case eGameOverTypes.TimeOrSpeedChallengeComplete:
+			case GameOverTypes.TimeOrSpeedChallengeComplete:
 				gBGMScript.StopGameMusic();
 				GetComponent<AudioSource>().PlayOneShot(gLevelCompleteAudio);
 				gGameOverObjectTitleTextMesh.text = "GAME\nCOMPLETED!";
 				break;
 
-			case eGameOverTypes.ScoreChallengeComplete:
+			case GameOverTypes.ScoreChallengeComplete:
 				gBGMScript.StopGameMusic();
 				GetComponent<AudioSource>().PlayOneShot(gLevelEndedAudio);
 				gGameOverObjectTitleTextMesh.text = "GAME\nCOMPLETED!";
@@ -948,29 +803,20 @@ public class Tower : MonoBehaviour
 
 		// Save PlayerPrefs if anything's changed
 		if (savePlayerPrefs)
-		{
 			PlayerPrefs.Save();
-		}
 
 		// Check if high score has been broken
 		bool beatHiScore;
-		if ((gGameMode == eGameModes.TimeChallenge) || (gGameMode == eGameModes.SpeedChallenge))
-		{
-			beatHiScore = ((gameOverType != eGameOverTypes.PlayerDied) && ((gHighScore == 0) || (gScore < gHighScore)));
-		}
+		if ((gGameMode == GameModes.TimeChallenge) || (gGameMode == GameModes.SpeedChallenge))
+			beatHiScore = ((gameOverType != GameOverTypes.PlayerDied) && ((gHighScore == 0) || (gScore < gHighScore)));
 		else
-		{
 			beatHiScore = (gScore > gHighScore);
-		}
+
 		if (beatHiScore)
-		{
 			gGameOverObjectHiScoreNameEntry.SetActive(true);
-			gNameEntryTouchButtonScript.PerformAction();
-		}
 		else
-		{
 			gGameOverObjectHiScoreNameEntry.SetActive(false);
-		}
+
 		gGameOverObjectHiScoreShare.SetActive(false);
 	}
 	
@@ -999,7 +845,7 @@ public class Tower : MonoBehaviour
 
 	/// <summary> Starts a new state in the "level complete" sequence </summary>
 	/// <param name='state'> eLevelCompleteStates.... value </param>
-	private void LevelCompleteSetState(eLCStates state)
+	private void LevelCompleteSetState(LevelStates state)
 	{
 		gLCStateTime = gLCPrevTimeOffset = Time.fixedTime;
 		gLCState = state;
@@ -1017,23 +863,23 @@ public class Tower : MonoBehaviour
 		gLCJarFull = IsPlayerBarFull();
 		switch (gGameMode)
 		{
-			case eGameModes.Original:
+			case GameModes.Original:
 				gBGMScript.PauseGameMusic();
 				GetComponent<AudioSource>().PlayOneShot(gLCJarFull ? gLevelCompleteAudio : gLevelEndedAudio);
-				LevelCompleteSetState(eLCStates.Popup);
+				LevelCompleteSetState(LevelStates.Popup);
 				PopupWindow(gLevelCompleteObject);
 				gLevelCompleteButtonsObject.SetActive(false);
 				gLevelCompleteTitleTextMesh.text = "LEVEL "+gLCLevelJustCompleted+ (gLCJarFull ? "\nCOMPLETED!" : "\nHAS ENDED.");
 				break;
 			
-			case eGameModes.Arcade:
+			case GameModes.Arcade:
 				if (gLCJarFull)
 				{
 					gBGMScript.PauseGameMusic();
-					LevelCompleteSetState(eLCStates.JarCount);
+					LevelCompleteSetState(LevelStates.JarCount);
 					PopupWindow(gLevelCompleteObject);
 					gLevelCompleteButtonsObject.SetActive(false);
-					gLevelCompleteTitleTextMesh.text = kJarFullTitleString;
+					gLevelCompleteTitleTextMesh.text = jarFullTitleString;
 				}
 				else
 				{
@@ -1041,14 +887,14 @@ public class Tower : MonoBehaviour
 				}
 				break;
 			
-			case eGameModes.TimeChallenge:
-			case eGameModes.SpeedChallenge:
+			case GameModes.TimeChallenge:
+			case GameModes.SpeedChallenge:
 				GetComponent<AudioSource>().PlayOneShot(gLevelCompleteAudio);
 				gLevel = gLevelInt + 1.0f;
-				if ((gGameMode == eGameModes.SpeedChallenge) || (Mathf.FloorToInt(gLevel) >= gStartingLevel + 5))
+				if ((gGameMode == GameModes.SpeedChallenge) || (Mathf.FloorToInt(gLevel) >= gStartingLevel + 5))
 				{
 					SetScore(Mathf.FloorToInt((Time.fixedTime - gTimeChallengeStartTime) * 1000.0f));	// *1000 to preserve milliseconds
-					GameOver(eGameOverTypes.TimeOrSpeedChallengeComplete);
+					GameOver(GameOverTypes.TimeOrSpeedChallengeComplete);
 				}
 				else
 				{
@@ -1058,10 +904,10 @@ public class Tower : MonoBehaviour
 				}
 				break;
 			
-			case eGameModes.ScoreChallenge:
+			case GameModes.ScoreChallenge:
 				if (Mathf.FloorToInt(gLevel) >= gStartingLevel + 5)
 				{
-					GameOver(eGameOverTypes.ScoreChallengeComplete);
+					GameOver(GameOverTypes.ScoreChallengeComplete);
 				}
 				else
 				{
@@ -1100,20 +946,20 @@ public class Tower : MonoBehaviour
 		float timeOffset = fixedTime - gLCStateTime;
 		switch (gLCState)
 		{
-			case eLCStates.Popup:
+			case LevelStates.Popup:
 				if (timeOffset > 1.75f)
 				{
 					gRepeatingSoundTimer = 0.0f;
-					LevelCompleteSetState(eLCStates.JarCount);
+					LevelCompleteSetState(LevelStates.JarCount);
 				}
 				else if ((timeOffset >= 1.0f) && (gLCPrevTimeOffset < 1.0f))
 				{
-					gLevelCompleteBonusTextMesh.text = kJarBonusString;
+					gLevelCompleteBonusTextMesh.text = jarBonusString;
 					if (gLCJarFull) { gLevelCompleteBonusTextMesh.text += "\n"; }
 				}
 				break;
 
-			case eLCStates.JarCount:
+			case LevelStates.JarCount:
 				if (gPlayerBarAmount > 0)
 				{
 					if (fixedTime > gRepeatingSoundTimer)
@@ -1132,42 +978,42 @@ public class Tower : MonoBehaviour
 				}
 				else
 				{
-					if (gGameMode == eGameModes.Arcade)
+					if (gGameMode == GameModes.Arcade)
 					{
-						LevelCompleteSetState(eLCStates.FinalPause);
+						LevelCompleteSetState(LevelStates.FinalPause);
 					}
 					else
 					{	
-						LevelCompleteSetState(eLCStates.JarPause);
+						LevelCompleteSetState(LevelStates.JarPause);
 					}
 				}
 				// Bonus string, with new line if jar full
-				gLevelCompleteBonusTextMesh.text = kJarBonusString+gLCDropBonus;
+				gLevelCompleteBonusTextMesh.text = jarBonusString+gLCDropBonus;
 				if (gLCJarFull) { gLevelCompleteBonusTextMesh.text += "\n"; }
 				break;
 			
-			case eLCStates.JarPause:
+			case LevelStates.JarPause:
 				if (timeOffset > 1.0f)
 				{
 					if (gLCJarFull)
 					{
 						gRepeatingSoundTimer = 0.0f;
-						LevelCompleteSetState(eLCStates.FullJarCount);
+						LevelCompleteSetState(LevelStates.FullJarCount);
 					}
 					else
 					{
 						gLevelCompleteButtonsObject.SetActive(true);
-						LevelCompleteSetState(eLCStates.FinalPause);
+						LevelCompleteSetState(LevelStates.FinalPause);
 					}
 				}
 				if ((gLCJarFull) && (timeOffset >= 0.5f) && (gLCPrevTimeOffset < 0.5f))
 				{
 					GetComponent<AudioSource>().PlayOneShot(gLevelUpAudio);
-					gLevelCompleteBonusTextMesh.text = kJarBonusString+gLCDropBonus+kJarFullString;
+					gLevelCompleteBonusTextMesh.text = jarBonusString+gLCDropBonus+jarFullString;
 				}
 				break;
 			
-			case eLCStates.FullJarCount:
+			case LevelStates.FullJarCount:
 				if (Mathf.FloorToInt(gLevel) == gLCLevelJustCompleted)
 				{
 					if (fixedTime > gRepeatingSoundTimer)
@@ -1182,13 +1028,13 @@ public class Tower : MonoBehaviour
 				else
 				{
 					gLevelCompleteButtonsObject.SetActive(true);
-					LevelCompleteSetState(eLCStates.FinalPause);
+					LevelCompleteSetState(LevelStates.FinalPause);
 				}
-				gLevelCompleteBonusTextMesh.text = kJarBonusString+gLCDropBonus+kJarFullStringPlus+gLCFullJarBonus;
+				gLevelCompleteBonusTextMesh.text = jarBonusString+gLCDropBonus+jarFullStringPlus+gLCFullJarBonus;
 				break;
 
-			case eLCStates.FinalPause:
-				if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || (gGameMode == eGameModes.Arcade))
+			case LevelStates.FinalPause:
+				if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || (gGameMode == GameModes.Arcade))
 				{
 					StartNextLevel();
 				}
@@ -1208,7 +1054,6 @@ public class Tower : MonoBehaviour
 	{
 		ResetPlayerBar();
 		UpdateBackground(true);
-		ClosePopupWindow();
 	}
 	
 	
@@ -1243,7 +1088,7 @@ public class Tower : MonoBehaviour
 			LevelChanged(levelPercent);
 			
 			// If it's in gameplay, trigger the "level complete" sequence
-			if (!gFrontendMenuObject.activeSelf && !IsGameFrozen())
+			// if (!gFrontendMenuObject.activeSelf && !IsGameFrozen())
 			{
 				LevelComplete();
 			}
@@ -1255,8 +1100,8 @@ public class Tower : MonoBehaviour
 		// GameMode specific updates
 		switch (gGameMode)
 		{
-			case eGameModes.TimeChallenge:
-			case eGameModes.SpeedChallenge:
+			case GameModes.TimeChallenge:
+			case GameModes.SpeedChallenge:
 				TimeSpan timeSpan = TimeSpan.FromSeconds(Time.fixedTime - gTimeChallengeStartTime);
 				gGUITextTime.text = string.Format("Time:\n{0:00}:{1:00}.{2:000}", timeSpan.Minutes, timeSpan.Seconds, timeSpan.Milliseconds);
 				break;
@@ -1265,7 +1110,7 @@ public class Tower : MonoBehaviour
 				float levelPercent = gLevel - (float)(gLevelInt);
 				if ((levelPercent < 0.9f) || IsGameFrozen() || ((Mathf.FloorToInt(Time.fixedTime * 3.0f) & 1) == 0))	// Flash when almost full
 				{
-					UpdateGameplayProgressBar(gProgressBarLevelBar, 1.0f - levelPercent, (levelPercent > 0.8f) ? kLevelProgressBarVecRed : kLevelProgressBarVecGreen);
+					UpdateGameplayProgressBar(gProgressBarLevelBar, 1.0f - levelPercent, (levelPercent > 0.8f) ? levelProgressBarVecRed : levelProgressBarVecGreen);
 					gProgressBarLevelBar.GetComponent<Renderer>().enabled = true;
 				}
 				else
@@ -1286,7 +1131,7 @@ public class Tower : MonoBehaviour
 		gNewBlockAppearRate = gNewBlockAppearRateSlowest + ((gNewBlockAppearRateFastest - gNewBlockAppearRateSlowest) * percent);
 
 		// Update block types & jar capacity
-		gCurrentBlockTypes = gBlockTypesMin + Convert.ToInt32(Convert.ToSingle(gBlockPrefabsTransparent.Length - gBlockTypesMin) * percent);
+		gCurrentBlockTypes = gBlockTypesMin + Convert.ToInt32(Convert.ToSingle(blockDefs.Length - gBlockTypesMin) * percent);
 		gPlayerBarCapacity = gJarCapacityMin + Convert.ToInt32(Convert.ToSingle(gJarCapacityMax - gJarCapacityMin) * percent);
 
 		// Calculate columns & rows for new level
@@ -1304,7 +1149,7 @@ public class Tower : MonoBehaviour
 		}
 
 		// Menu selection: always recreate tower with new set of blocks
-		if (gFrontendMenuObject.activeSelf)
+/*		if (gFrontendMenuObject.activeSelf)
 		{
 			ClearBlocks(true);
 			gColumns = newColumns;
@@ -1313,7 +1158,7 @@ public class Tower : MonoBehaviour
 		}
 		// Regular gameplay - if the columns or rows have changed, update the tower preserving the previous blocks
 		else
-		{
+*/		{
 			// Columns/rows changed?
 			if((gColumns != newColumns) || (gRows != newRows))
 			{
@@ -1350,7 +1195,7 @@ public class Tower : MonoBehaviour
 			if (gBlocks[i] != null)
 			{
 				Block block = gBlocks[i];
-				blockInfoList.Add(new BlockInfo(block.mCol, block.mRow, block.mBlockID, block.mFallingOffset));
+				blockInfoList.Add(new BlockInfo(block.col, block.row, block.blockID, block.fallingOffset));
 			}
 		}
 		
@@ -1365,7 +1210,7 @@ public class Tower : MonoBehaviour
 		foreach (BlockInfo info in blockInfoList)
 		{
 			gBlocks[BlockIdx(info.mCol, info.mRow)] = GetNewBlock(info.mBlockID, transform, gColumns, gTowerRadius, gBlockScale, info.mCol, info.mRow);
-			GetBlock(info.mCol, info.mRow).mFallingOffset = info.mFallingOffset;
+			GetBlock(info.mCol, info.mRow).fallingOffset = info.mFallingOffset;
 		}
 	}
 	
@@ -1373,35 +1218,14 @@ public class Tower : MonoBehaviour
 	/// <summary> Brings up the main menu </summary>
 	public void ShowFrontendMenu()
 	{
-		// Close popup window & hide gameplay progress bars
-		ClosePopupWindow();
-		gInGameGUI.SetActive(false);
-		
+		// TODO: Close menu, EOR popup, etc here?
+
 		// Recreate tower
 		ClearBlocks(true);
 		DeleteTemporaryObjects();
 		RefreshTower(false);
-
 		ResetScore();
-		
-		// Show frontend
-		TowerCamera.gInstance.SetState(TowerCamera.eStates.Menu);
-		gFrontendMenuObject.SetActive(true);
-		FrontendMenu menuScript = gFrontendMenuObject.GetComponent<FrontendMenu>();
-		if (menuScript == null) { throw new Exception("Could not find FrontendMenu script attached to gFrontnedMenuObject"); }
-		menuScript.SetState(FrontendMenu.eFrontendStates.MenuAppearing);
-		SetControlMethod((eControlMethods)PlayerPrefs.GetInt(Constants.kPPControlMethod, 0));
-
-		// Cheat for small jar capacity & quick level time
-		if (Input.GetKey(KeyCode.S) && Input.GetKey(KeyCode.D))
-		{
-			gJarCapacityMin /= 8;
-			gJarCapacityMax /= 8;
-			gPlayerBarCapacity /= 8;
-			gLevelIncreaseRateShorter *= 8.0f;
-			gLevelIncreaseRateFull *= 8.0f;
-			gLevelIncreaseRate *= 8.0f;
-		}
+		TowerCamera.Instance.SetState(TowerCamera.GameStates.Menu);
 		
 		// Restore starting speeds (will also recreate tower by calling LevelChanged())
 		RestoreSpeeds();
@@ -1413,7 +1237,7 @@ public class Tower : MonoBehaviour
 	{
 		gSelectorLeft.GetComponent<AudioSource>().PlayOneShot(gSelectorMoveAudio[0]);
 		SetSelectorPos(WrapCol(gSelectorLeftCol + 1), gSelectorRow);
-		TowerCamera.gInstance.RotateTowards(GetSelectorAngle());
+		TowerCamera.Instance.RotateTowards(GetSelectorAngle());
 		gSelectorSwapAnimOffset = 0.0f;
 	}
 
@@ -1423,7 +1247,7 @@ public class Tower : MonoBehaviour
 	{
 		gSelectorLeft.GetComponent<AudioSource>().PlayOneShot(gSelectorMoveAudio[1]);
 		SetSelectorPos(WrapCol(gSelectorLeftCol - 1), gSelectorRow);
-		TowerCamera.gInstance.RotateTowards(GetSelectorAngle());
+		TowerCamera.Instance.RotateTowards(GetSelectorAngle());
 		gSelectorSwapAnimOffset = 0.0f;
 	}
 
@@ -1457,10 +1281,10 @@ public class Tower : MonoBehaviour
 		// Ensure neither of them, or the ones below them, are busy falling
 		Block belowLeft = ((gSelectorRow == 0) ? null : GetBlock(gSelectorLeftCol, gSelectorRow - 1));
 		Block belowRight = ((gSelectorRow == 0) ? null : GetBlock(rightCol, gSelectorRow - 1));
-		if (((oldLeft == null) || (oldLeft.mFallingOffset == 0.0f)) &&
-			((oldRight == null) || (oldRight.mFallingOffset == 0.0f)) &&
-			((belowLeft == null) || (belowLeft.mFallingOffset == 0.0f)) &&
-			((belowRight == null) || (belowRight.mFallingOffset == 0.0f)))
+		if (((oldLeft == null) || (oldLeft.fallingOffset == 0.0f)) &&
+			((oldRight == null) || (oldRight.fallingOffset == 0.0f)) &&
+			((belowLeft == null) || (belowLeft.fallingOffset == 0.0f)) &&
+			((belowRight == null) || (belowRight.fallingOffset == 0.0f)))
 		{
 			// Play switch sound
 			gSelectorLeft.GetComponent<AudioSource>().PlayOneShot(gSelectorSwitchAudio[(gSelectorLeftCol & 1)]);
@@ -1472,15 +1296,15 @@ public class Tower : MonoBehaviour
 			// Set the new columns, positions & rotations
 			if (oldLeft != null)
 			{
-				oldLeft.mCol = rightCol;
-				oldLeft.mGameObj.transform.localEulerAngles = new Vector3(0.0f, Block.CalcAngleDeg(oldLeft.mCol, gColumns), 0.0f);
-				oldLeft.mGameObj.transform.localPosition = Block.CalcPosition(oldLeft.mCol, oldLeft.mRow, oldLeft.mGameObj.transform.localEulerAngles.y, gTowerRadius, gBlockScale);
+				oldLeft.col = rightCol;
+				oldLeft.gameObj.transform.localEulerAngles = new Vector3(0.0f, Block.CalcAngleDeg(oldLeft.col, gColumns), 0.0f);
+				oldLeft.gameObj.transform.localPosition = Block.CalcPosition(oldLeft.col, oldLeft.row, oldLeft.gameObj.transform.localEulerAngles.y, gTowerRadius, gBlockScale);
 			}
 			if (oldRight != null)
 			{
-				oldRight.mCol = gSelectorLeftCol;
-				oldRight.mGameObj.transform.localEulerAngles = new Vector3(0.0f, Block.CalcAngleDeg(oldRight.mCol, gColumns), 0.0f);
-				oldRight.mGameObj.transform.localPosition = Block.CalcPosition(oldRight.mCol, oldRight.mRow, oldRight.mGameObj.transform.localEulerAngles.y, gTowerRadius, gBlockScale);
+				oldRight.col = gSelectorLeftCol;
+				oldRight.gameObj.transform.localEulerAngles = new Vector3(0.0f, Block.CalcAngleDeg(oldRight.col, gColumns), 0.0f);
+				oldRight.gameObj.transform.localPosition = Block.CalcPosition(oldRight.col, oldRight.row, oldRight.gameObj.transform.localEulerAngles.y, gTowerRadius, gBlockScale);
 			}
 		}
 		
@@ -1528,11 +1352,11 @@ public class Tower : MonoBehaviour
 				break;
 			
 			case TouchGestures.eGestureTypes.SwipeLeft:
-				if (gControlMethod == eControlMethods.SwipeTower) { MoveRight(); } else { MoveLeft(); }
+				if (gControlMethod == ControlMethods.SwipeTower) { MoveRight(); } else { MoveLeft(); }
 				break;
 			
 			case TouchGestures.eGestureTypes.SwipeRight:
-				if (gControlMethod == eControlMethods.SwipeTower) { MoveLeft(); } else { MoveRight(); }
+				if (gControlMethod == ControlMethods.SwipeTower) { MoveLeft(); } else { MoveRight(); }
 				break;
 			
 			case TouchGestures.eGestureTypes.SwipeDown:
@@ -1605,20 +1429,20 @@ public class Tower : MonoBehaviour
 				Block block = GetBlock(col, gRows);
 				if (block != null)
 				{
-					block.mGameObj.transform.localScale = new Vector3(gBlockScale, gBlockScale, gBlockScale);
-					if (GetBlock(block.mCol, block.mRow - 1) == null)
+					block.gameObj.transform.localScale = new Vector3(gBlockScale, gBlockScale, gBlockScale);
+					if (GetBlock(block.col, block.row - 1) == null)
 					{
 						ShiftBlockDown(block);
 					}
-					else if (GetBlock(block.mCol, block.mRow - 1).mBlockID == block.mBlockID)
+					else if (GetBlock(block.col, block.row - 1).blockID == block.blockID)
 					{
 						// Special case: landed on a matching block
 						ClearBlock(block, true);
-						ClearBlock(GetBlock(block.mCol, block.mRow - 1), true);
+						ClearBlock(GetBlock(block.col, block.row - 1), true);
 					}
 					else
 					{
-						GameOver(eGameOverTypes.PlayerDied);
+						GameOver(GameOverTypes.PlayerDied);
 					}
 				}
 			}
@@ -1639,7 +1463,7 @@ public class Tower : MonoBehaviour
 
 					// Avoid matching the block it's falling onto
 					Block topMostBlock = FindTopmostBlock(wrappedCol);
-					if ((topMostBlock != null) && (blockIdx == topMostBlock.mBlockID))
+					if ((topMostBlock != null) && (blockIdx == topMostBlock.blockID))
 					{
 						blockIdx = (blockIdx + 1) % gCurrentBlockTypes;
 						// Debug.Log("Changed col "+wrappedCol+"'s blockID from "+gBlockPrefabsSolid[topMostBlock.mBlockID]+" to "+gBlockPrefabsSolid[blockIdx]+" (matched topmost block)");
@@ -1666,7 +1490,7 @@ public class Tower : MonoBehaviour
 			Block block = GetBlock(col, gRows);
 			if (block != null)
 			{
-				block.mGameObj.transform.localScale = new Vector3(gBlockScale, gBlockScale * growScale, gBlockScale);
+				block.gameObj.transform.localScale = new Vector3(gBlockScale, gBlockScale * growScale, gBlockScale);
 			}
 		}
 	}
@@ -1677,10 +1501,10 @@ public class Tower : MonoBehaviour
 	private void ShiftBlockDown(Block block)
 	{
 		// Shift it into lower position
-		gBlocks[BlockIdx(block.mCol, block.mRow - 1)] = block;
-		gBlocks[BlockIdx(block.mCol, block.mRow)] = null;
-		block.mRow--;
-		block.mFallingOffset += 1.0f;
+		gBlocks[BlockIdx(block.col, block.row - 1)] = block;
+		gBlocks[BlockIdx(block.col, block.row)] = null;
+		block.row--;
+		block.fallingOffset += 1.0f;
 	}
 
 
@@ -1733,31 +1557,31 @@ public class Tower : MonoBehaviour
 				if (block != null)
 				{
 					// Update shifting down / landing
-					if (block.mFallingOffset <= 0.0f)
+					if (block.fallingOffset <= 0.0f)
 					{
 						// Empty space below it?
-						if ((block.mRow > 0) && (GetBlock(block.mCol, block.mRow - 1) == null))
+						if ((block.row > 0) && (GetBlock(block.col, block.row - 1) == null))
 						{
 							ShiftBlockDown(block);
 						}
 						// Should land?
-						else if (block.mFallingOffset < 0.0)
+						else if (block.fallingOffset < 0.0)
 						{
-							PlayBlockAudio(block.mGameObj.transform.localPosition, gBlockLandAudioClips[block.mBlockID], false);
+							PlayBlockAudio(block.gameObj.transform.localPosition, block.blockDef.landingAudio, false);
 
-							block.mFallingOffset = 0.0f;
-							block.mGameObj.transform.localPosition = new Vector3(block.mGameObj.transform.localPosition.x, (block.mRow * gBlockScale), block.mGameObj.transform.localPosition.z);
+							block.fallingOffset = 0.0f;
+							block.gameObj.transform.localPosition = new Vector3(block.gameObj.transform.localPosition.x, (block.row * gBlockScale), block.gameObj.transform.localPosition.z);
 						}
 					}
 					
 					// Check again in case it just landed / shifted
-					if (block.mFallingOffset > 0.0f)
+					if (block.fallingOffset > 0.0f)
 					{
 						// Falling normally
-						block.mFallingOffset -= gFallSpeed * dTime;
-						Vector3 newPos = block.mGameObj.transform.localPosition;
-						newPos.y = (block.mRow * gBlockScale) + (block.mFallingOffset * gBlockScale);
-						block.mGameObj.transform.localPosition = newPos;
+						block.fallingOffset -= gFallSpeed * dTime;
+						Vector3 newPos = block.gameObj.transform.localPosition;
+						newPos.y = (block.row * gBlockScale) + (block.fallingOffset * gBlockScale);
+						block.gameObj.transform.localPosition = newPos;
 					}
 				}
 			}
@@ -1772,7 +1596,7 @@ public class Tower : MonoBehaviour
 				if (block != null)
 				{
 					// At rest?
-					if (block.mFallingOffset == 0.0f)
+					if (block.fallingOffset == 0.0f)
 					{
 						bool delete = false;
 
@@ -1780,25 +1604,25 @@ public class Tower : MonoBehaviour
 						if (row > 0)
 						{
 							Block otherBlock = GetBlock(col, row - 1);
-							delete = ((otherBlock != null) && otherBlock.CheckForMatch(block.mBlockID) && !IsBlockAboutToShiftDown(otherBlock));
+							delete = ((otherBlock != null) && otherBlock.CheckForMatch(block.blockID) && !IsBlockAboutToShiftDown(otherBlock));
 						}
 						// Check above
 						if (!delete && (row < gRows - 1))
 						{
 							Block otherBlock = GetBlock(col, row + 1);
-							delete = ((otherBlock != null) && otherBlock.CheckForMatch(block.mBlockID) && !IsBlockAboutToShiftDown(otherBlock));
+							delete = ((otherBlock != null) && otherBlock.CheckForMatch(block.blockID) && !IsBlockAboutToShiftDown(otherBlock));
 						}
 						// Check to the left
 						if (!delete)
 						{
 							Block otherBlock = GetBlock(WrapCol(col - 1), row);
-							delete = ((otherBlock != null) && otherBlock.CheckForMatch(block.mBlockID) && !IsBlockAboutToShiftDown(otherBlock));
+							delete = ((otherBlock != null) && otherBlock.CheckForMatch(block.blockID) && !IsBlockAboutToShiftDown(otherBlock));
 						}
 						// Check to the right
 						if (!delete)
 						{
 							Block otherBlock = GetBlock(WrapCol(col + 1), row);
-							delete = ((otherBlock != null) && otherBlock.CheckForMatch(block.mBlockID) && !IsBlockAboutToShiftDown(otherBlock));
+							delete = ((otherBlock != null) && otherBlock.CheckForMatch(block.blockID) && !IsBlockAboutToShiftDown(otherBlock));
 						}
 
 						// Mark for deletion if there was a math
@@ -1820,7 +1644,7 @@ public class Tower : MonoBehaviour
 
 			// Accumulate score 
 			++scoreChain;
-			scorePopupPos += blockToDelete.mGameObj.transform.position;
+			scorePopupPos += blockToDelete.gameObj.transform.position;
 			
 			// Start block disappearing
 			Color blockColor = blockToDelete.GetMainColor();
@@ -1830,13 +1654,13 @@ public class Tower : MonoBehaviour
 			if (scoreChain > 2)
 			{
 				// Add 3D object to fall out of the bottom of the tower
-				Transform blockTrans = blockToDelete.mGameObj.transform;
+				Transform blockTrans = blockToDelete.gameObj.transform;
 				GameObject drop = GameObject.Instantiate(gFallingRingPrefab, blockTrans.position, blockTrans.rotation) as GameObject;
 				drop.transform.localScale = new Vector3(gBlockScale * 0.275f, gBlockScale * 0.275f, gBlockScale * 0.275f);
 				drop.GetComponent<Renderer>().material.color = new Color(blockColor.r * 0.5f, blockColor.g * 0.5f, blockColor.b * 0.5f);
 				
 				// Add to the size & colour of the player's progress bar
-				if (gGameMode != eGameModes.ScoreChallenge)
+				if (gGameMode != GameModes.ScoreChallenge)
 				{
 					++gPlayerBarAmount;
 					gPlayerBarColorTotal += new Vector3(blockColor.r, blockColor.g, blockColor.b);
@@ -1882,7 +1706,7 @@ public class Tower : MonoBehaviour
 			scoreThisFrame *= 10;
 			SetScore(gScore + scoreThisFrame);
 
-			TextGrowAndFade.StartPopupText(scorePopupPos, TowerCamera.gInstance.transform.rotation, gGUITextLevel.color, scoreThisFrame.ToString() + ((scoreChain > 2) ? "!" : ""));
+			TextGrowAndFade.StartPopupText(scorePopupPos, TowerCamera.Instance.transform.rotation, gGUITextLevel.color, scoreThisFrame.ToString() + ((scoreChain > 2) ? "!" : ""));
 		}
 	}
 	
@@ -1974,7 +1798,7 @@ public class Tower : MonoBehaviour
 		gLevelInt = -1;	// Forces UpdateLevelProgress() to refresh "changed" level
 		UpdateLevelProgress(0.0f);
 		SetSelectorPos(PlayerPrefs.GetInt(Constants.kQSSelectorLeftCol), PlayerPrefs.GetInt(Constants.kQSSelectorRow));
-		TowerCamera.gInstance.RotateTowards(GetSelectorAngle());
+		TowerCamera.Instance.RotateTowards(GetSelectorAngle());
 		SetScore(PlayerPrefs.GetInt(Constants.kQSScore));
 		
 		// Restore the jar
