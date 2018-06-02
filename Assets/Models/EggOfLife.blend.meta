@@ -1,0 +1,128 @@
+fileFormatVersion: 2
+guid: bf22f6265bfcd4ad885a8f725a1370ce
+ModelImporter:
+  serializedVersion: 16
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: FlowerRing_000
+    100004: FlowerRing_001
+    100006: FlowerRing_002
+    100008: FlowerRing_003
+    100010: FlowerRing_004
+    100012: FlowerRing_005
+    100014: FlowerRing_006
+    100016: FlowerRing_007
+    100018: FlowerRing_008
+    100020: FlowerRing_009
+    100022: FlowerRing_010
+    100024: FlowerRing_011
+    100026: FlowerRing_012
+    400000: //RootNode
+    400002: FlowerRing_000
+    400004: FlowerRing_001
+    400006: FlowerRing_002
+    400008: FlowerRing_003
+    400010: FlowerRing_004
+    400012: FlowerRing_005
+    400014: FlowerRing_006
+    400016: FlowerRing_007
+    400018: FlowerRing_008
+    400020: FlowerRing_009
+    400022: FlowerRing_010
+    400024: FlowerRing_011
+    400026: FlowerRing_012
+    2300000: FlowerRing_000
+    2300002: FlowerRing_001
+    2300004: FlowerRing_002
+    2300006: FlowerRing_003
+    2300008: FlowerRing_004
+    2300010: FlowerRing_005
+    2300012: FlowerRing_006
+    2300014: FlowerRing_007
+    2300016: FlowerRing_008
+    2300018: FlowerRing_009
+    2300020: FlowerRing_010
+    2300022: FlowerRing_011
+    2300024: FlowerRing_012
+    3300000: FlowerRing_000
+    3300002: FlowerRing_001
+    3300004: FlowerRing_002
+    3300006: FlowerRing_003
+    3300008: FlowerRing_004
+    3300010: FlowerRing_005
+    3300012: FlowerRing_006
+    3300014: FlowerRing_007
+    3300016: FlowerRing_008
+    3300018: FlowerRing_009
+    3300020: FlowerRing_010
+    3300022: FlowerRing_011
+    3300024: FlowerRing_012
+    4300000: FlowerRing_012
+    4300002: FlowerRing_011
+    4300004: FlowerRing_010
+    4300006: FlowerRing_009
+    4300008: FlowerRing_008
+    4300010: FlowerRing_007
+    4300012: FlowerRing_006
+    4300014: FlowerRing_005
+    4300016: FlowerRing_004
+    4300018: FlowerRing_003
+    4300020: FlowerRing_002
+    4300022: FlowerRing_001
+    4300024: FlowerRing_000
+    7400000: Default Take
+    9500000: //RootNode
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationCompression: 1
+    animationRotationError: .5
+    animationPositionError: .5
+    animationScaleError: .5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 1
+    addColliders: 0
+    importBlendShapes: 0
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+  tangentSpace:
+    normalSmoothAngle: 60
+    splitTangentsAcrossUV: 1
+    normalImportMode: 0
+    tangentImportMode: 1
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    armTwist: .5
+    foreArmTwist: .5
+    upperLegTwist: .5
+    legTwist: .5
+    armStretch: .0500000007
+    legStretch: .0500000007
+    feetSpacing: 0
+    rootMotionBoneName: 
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  additionalBone: 1
+  userData: 

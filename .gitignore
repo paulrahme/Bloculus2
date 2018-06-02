@@ -1,0 +1,11 @@
+Library/
+Temp/
+Obj/
+Build/
+.vs/
+
+*.sln
+*.csproj
+*.suo
+*.swatch
+*.userprefs
