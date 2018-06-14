@@ -51,7 +51,7 @@ public class RippleGrowAndFade : MonoBehaviour
 			}
 			else
 			{
-				transform.parent = Tower.gInstance.gDisabledGameObjectPool;
+				transform.parent = null;//Tower.gInstance.gDisabledGameObjectPool;
 				gRecycleStack.Push(gameObject);
 			}
 		}

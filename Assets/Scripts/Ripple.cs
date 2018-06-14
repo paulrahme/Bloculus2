@@ -22,9 +22,16 @@ public class Ripple : MonoBehaviour
 	// Helper/inline functions
 	public void						SetMaterial(int materialIdx) { GetComponent<Renderer>().material = gLevelMaterials[materialIdx]; }
 	
-	/// <summary> Called when the object/script initiates </summary>
+	/// <summary> Singleton instance </summary>
+	public static Ripple Instance;
+
+	/// <summary> Called when object/script activates </summary>
 	void Awake()
 	{
+		if (Instance != null)
+			throw new UnityException("Singleton instance already exists");
+		Instance = this;
+
 		gScrollWrapAmounts = new Vector2(GetComponent<Renderer>().material.mainTexture.width * GetComponent<Renderer>().material.mainTexture.texelSize.x, GetComponent<Renderer>().material.mainTexture.height * GetComponent<Renderer>().material.mainTexture.texelSize.y);
 		gScrollOffset = Vector2.zero;
 		gMesh = GetComponent<MeshFilter>().mesh;

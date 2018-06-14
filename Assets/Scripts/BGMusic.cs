@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class BackgroundMusic : MonoBehaviour
+public class BGMusic : MonoBehaviour
 {
 	// Public variables
 	public AudioClip			gMusicTitle;																	// Music for title screen
@@ -20,13 +20,16 @@ public class BackgroundMusic : MonoBehaviour
 	public bool					IsMusicEnabled() { return !(GetComponent<AudioSource>().mute); }
 	public bool					IsSoundEnabled() { return !(gSFXAudioSources[0].mute); }
 
-	// Instance
-    public static BackgroundMusic	gInstance { get; private set; }
+	/// <summary> Singleton instance </summary>
+	public static BGMusic Instance;
 
 	/// <summary> Called when object/script activates </summary>
 	void Awake()
 	{
-		gInstance = this;
+		if (Instance != null)
+			throw new UnityException("Singleton instance already exists");
+		Instance = this;
+
 		gFullVolume = GetComponent<AudioSource>().volume;
 		if (PlayerPrefs.GetInt(Constants.kPPMusicEnabled, 1) == 0) { ToggleMusic(); }
 		if (PlayerPrefs.GetInt(Constants.kPPSoundEnabled, 1) == 0) { ToggleSoundEffects(); }

@@ -141,7 +141,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4326278819002180}
-  m_RootOrder: 3
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4326278819002180
 Transform:
@@ -154,9 +154,9 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4760872281713720}
+  - {fileID: 4046587594999326}
   - {fileID: 4518471076027588}
   - {fileID: 4625883606075886}
-  - {fileID: 4046587594999326}
   - {fileID: 4635679151527912}
   - {fileID: 4967463408420624}
   m_Father: {fileID: 0}
@@ -173,7 +173,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4326278819002180}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4625883606075886
 Transform:
@@ -186,7 +186,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4326278819002180}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4635679151527912
 Transform:
@@ -981,103 +981,29 @@ MonoBehaviour:
       type: 2}
     prefabSolid: {fileID: 100000, guid: 8fb5392d6043343719925092f36bd266, type: 2}
     landingAudio: {fileID: 8300000, guid: 974108a6dbbb14a218f49617f6ff29ee, type: 3}
-  gBlockPrefabsSolid:
-  - {fileID: 100000, guid: 7334664b09f2a4257b6a4c4c97d74c7c, type: 2}
-  - {fileID: 100000, guid: 70d9ea632252746069f17fd9fab359b3, type: 2}
-  - {fileID: 100000, guid: 5d2f4ba94b1e94d47bb744173fc9495c, type: 2}
-  - {fileID: 100000, guid: ff2ae99b76cba49ebad2b7438aca7806, type: 2}
-  - {fileID: 100000, guid: b63d2bb980ab247a68fb125cf1593636, type: 2}
-  - {fileID: 100000, guid: cdd70f5e288604201a1e72a6cbb1bb77, type: 2}
-  - {fileID: 100000, guid: 8a02c2fd9712b49dfb6180555ed7700a, type: 2}
-  - {fileID: 100000, guid: 7f1a5377085284475a583c84120f6c19, type: 2}
-  - {fileID: 100000, guid: a817ae6acb0a440b39af098adbe22d4b, type: 2}
-  - {fileID: 100000, guid: 679ef43592cd843da8cc0bfb6bcdcb21, type: 2}
-  - {fileID: 100000, guid: 55f3efbc2b3da467c91a86b0be09f398, type: 2}
-  - {fileID: 100000, guid: c7a45a8d6658d46b7b80bdb74413fcc5, type: 2}
-  - {fileID: 100000, guid: 8fb5392d6043343719925092f36bd266, type: 2}
-  gBlockPrefabsTransparent:
-  - {fileID: 100004, guid: 31af8b4d0c49c42d7bf5e1f9e9210857, type: 2}
-  - {fileID: 100004, guid: 6bffe2424972744eab151e01177e4df3, type: 2}
-  - {fileID: 100004, guid: a88f3b8dfc970402dbc0b00f5a6f9259, type: 2}
-  - {fileID: 100004, guid: f1917fb8872064d898a64337fc331770, type: 2}
-  - {fileID: 100004, guid: ea6b918767af54a6880296ec0b15e078, type: 2}
-  - {fileID: 100004, guid: a54edd9b6df6844c888bc95607d576b9, type: 2}
-  - {fileID: 100004, guid: 1cc1ba82cc10a428882520c515609c10, type: 2}
-  - {fileID: 100004, guid: 422290bb2a3c24263878b4e22552df02, type: 2}
-  - {fileID: 100004, guid: 212ededbde44a4df790b408a4c213661, type: 2}
-  - {fileID: 100004, guid: 72b8c6c92e7e143f5814efa123511014, type: 2}
-  - {fileID: 100004, guid: 1a85a79687d3a463491c3f25920ac442, type: 2}
-  - {fileID: 100004, guid: d63029388cb8240b49d16a8fbf7c04e5, type: 2}
-  - {fileID: 100004, guid: f6aafa2e1e4a347c09bc32380d7a07b8, type: 2}
-  gBlockLandAudioClips:
-  - {fileID: 8300000, guid: 8325ee0d021de4920a76cd2ebc03a327, type: 3}
-  - {fileID: 8300000, guid: ddb92a4a3c0af48fe9d6b76b0b45c5fd, type: 3}
-  - {fileID: 8300000, guid: db419452c5bd54fe8a235c67e0dc214d, type: 3}
-  - {fileID: 8300000, guid: 813fb7e59bf164d12bc9dd541436b1fc, type: 3}
-  - {fileID: 8300000, guid: 9e425e68c61b7405794a88cade5476b8, type: 3}
-  - {fileID: 8300000, guid: a8a4c9bc6b9204bff868e7505eade56a, type: 3}
-  - {fileID: 8300000, guid: c731fa886dabd47b5b41495ee3a63fa0, type: 3}
-  - {fileID: 8300000, guid: 6a946dc62530c4c0c94fc5f10185f047, type: 3}
-  - {fileID: 8300000, guid: a8d6bcd633e47449c9697032f89d1e55, type: 3}
-  - {fileID: 8300000, guid: c05c99708d93b4b04bd337e002f0885f, type: 3}
-  - {fileID: 8300000, guid: 82a6c670d40ba4de081ab82fbfa282e1, type: 3}
-  - {fileID: 8300000, guid: d863754ed00e3424f89f308c76fecf78, type: 3}
-  - {fileID: 8300000, guid: 974108a6dbbb14a218f49617f6ff29ee, type: 3}
-  gTowerRadius: 4
-  gLevelMin: 1
-  gLevelMax: 33
-  gFallSpeedSlowest: 2
-  gFallSpeedFastest: 7
-  gLevelIncreaseRateFull: 0.00666
-  gLevelIncreaseRateShorter: 0.01666
-  gLevelIncreaseRateArcade: 0.02333
-  gNewBlockAppearRateSlowest: 4.5
-  gNewBlockAppearRateFastest: 2
-  gColumnsMin: 10
-  gColumnsMax: 30
-  gRowsMin: 5
-  gRowsMax: 16
-  gBlockTypesMin: 4
-  gJarCapacityMin: 45
-  gJarCapacityMax: 150
-  gLCBonusPerJarDrop: 100
-  gLCBonusPerLevelPercent: 500
-  gSelectorSwapAnimSpeed: 9
-  gSelectorLeft: {fileID: 1673943313502956}
-  gSelectorRight: {fileID: 1389732464536704}
-  gFrontendMenuScript: {fileID: 0}
-  gReleaseNotesObject: {fileID: 0}
-  gFrontendMenuCubeStart: {fileID: 0}
-  gFrontendMenuCubeResume: {fileID: 0}
-  gPopupWindowObject: {fileID: 0}
-  gGameOverObject: {fileID: 0}
-  gGameOverObjectTitleTextMesh: {fileID: 0}
-  gGameOverObjectHiScoreNameEntry: {fileID: 0}
-  gGameOverObjectHiScoreShare: {fileID: 0}
-  gNameEntryTouchButtonScript: {fileID: 0}
-  gPauseObject: {fileID: 0}
-  gPauseSaveAndExitButton: {fileID: 0}
-  gPauseExitNoSaveButton: {fileID: 0}
-  gPauseQuitButton: {fileID: 0}
-  gLevelCompleteObject: {fileID: 0}
-  gLevelCompleteTitleTextMesh: {fileID: 0}
-  gLevelCompleteBonusTextMesh: {fileID: 0}
-  gLevelCompleteButtonsObject: {fileID: 0}
-  gLevelUp3DTextScript: {fileID: 0}
-  gInGameGUI: {fileID: 0}
-  gGUITextLevel: {fileID: 0}
-  gGUITextHiScore: {fileID: 0}
-  gGUITextHiScoreFrontend: {fileID: 0}
-  gGUITextScore: {fileID: 0}
-  gGUITextTime: {fileID: 0}
-  gGUITextRings: {fileID: 0}
-  gGUIPauseButtonText: {fileID: 0}
-  gProgressBarLevel: {fileID: 0}
-  gProgressBarLevelBar: {fileID: 0}
-  gProgressBarPlayer: {fileID: 0}
-  gProgressBarPlayerBar: {fileID: 0}
+  towerRadius: 4
+  levelMin: 1
+  levelMax: 33
+  fallSpeedSlowest: 2
+  fallSpeedFastest: 7
+  levelIncreaseRateFull: 0.00666
+  levelIncreaseRateShorter: 0.01666
+  levelIncreaseRateArcade: 0.02333
+  newBlockAppearRateSlowest: 4.5
+  newBlockAppearRateFastest: 2
+  columnsMin: 10
+  columnsMax: 30
+  rowsMin: 5
+  rowsMax: 16
+  blockTypesMin: 4
+  ringFillCapacityMin: 45
+  ringFilleCapacityMax: 150
+  levelCompleteBonusPerTick: 100
+  levelCompleteConusPerLevelPercent: 500
+  selectorSwapAnimSpeed: 9
+  selectorLeft: {fileID: 1673943313502956}
+  selectorRight: {fileID: 1389732464536704}
   gScoreTextPrefab: {fileID: 100000, guid: 63670f92ff71e4bf28820ead1fc30d12, type: 2}
-  gDisabledGameObjectPool: {fileID: 0}
   gFallingRingPrefab: {fileID: 100000, guid: d32082855f50b4deeb80d2aed8607f81, type: 2}
   gRippleRingPrefab: {fileID: 100000, guid: 1a0bce98e054c4aa499db61d0aeace62, type: 2}
   gLevelProgressBarTexture: {fileID: 2800000, guid: 705beab2fb610e14a875ad14401398ef,
@@ -1139,10 +1065,6 @@ MonoBehaviour:
   gColor3Text: {r: 0, g: 0, b: 0, a: 1}
   gColor4: {r: 0.5019608, g: 0.101960786, b: 0.101960786, a: 1}
   gColor4Text: {r: 1, g: 1, b: 1, a: 1}
-  gTowerCameraScript: {fileID: 0}
-  gBGMScript: {fileID: 0}
-  gFlowerOfLifeScript: {fileID: 0}
-  gRippleScript: {fileID: 0}
   gTouchGestureScript: {fileID: 114396074262915680}
   gColumns: 12
   gRows: 10

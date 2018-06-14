@@ -53,7 +53,7 @@ public class BlockDisappear : MonoBehaviour
 		gColor.a -= Time.deltaTime / gFadeTime;
 		if (gColor.a <= 0.0f)
 		{
-			transform.parent = Tower.gInstance.gDisabledGameObjectPool;
+			transform.parent = null;//Tower.gInstance.gDisabledGameObjectPool;
 			gRecycleStack.Push(gameObject);
 		}
 		else
