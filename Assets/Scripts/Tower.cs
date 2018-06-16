@@ -40,11 +40,10 @@ public partial class Tower : MonoBehaviour
 	[SerializeField] float							selectorSwapAnimSpeed = 9.0f;									// Speed of the selector's swap anim, in loops per second
 
 	[Header("Hierarchy")]
-	[SerializeField] GameObject						selectorLeft;													// Half of the selector for swapping blocks
-	[SerializeField] GameObject						selectorRight;													// Half of the selector for swapping blocks
+	[SerializeField] GameObject						selectorLeft = null;													// Half of the selector for swapping blocks
+	[SerializeField] GameObject						selectorRight = null;													// Half of the selector for swapping blocks
 
 	[Header("Prefabs")]
-	public GameObject						gScoreTextPrefab;												// Prefab from which to instantiate fading score popups
 	[SerializeField] GameObject						gFallingRingPrefab;												// Prefab from which to instantiate 3D falling rings
 	public GameObject						gRippleRingPrefab;												// Prefab from which to instantiate pulsing ring effect
 	[SerializeField] Texture							gLevelProgressBarTexture;										// GUI texture for level progress bar
@@ -58,7 +57,6 @@ public partial class Tower : MonoBehaviour
 	[SerializeField] AudioClip[]						gBlockDisappearAudio;											// Audio for blocks disappearing (incl combos)
 	[SerializeField] AudioClip[]						gSelectorMoveAudio;												// Audio for selector moving around
 	[SerializeField] AudioClip[]						gSelectorSwitchAudio;											// Audio for selector switching
-	[SerializeField] GameObject[]						gEnableOnlyForSwipeControls, gEnableOnlyForButtonControls;		// Objects to activate/deactivate depending on control method
 	[SerializeField] AudioClip						gLevelEndedAudio;												// Audio for level ending (before player filled jar)
 	[SerializeField] AudioClip						gLevelCompleteAudio;											// Audio for player filling the jar & ending the level
 	[SerializeField] AudioClip						gLevelUpAudio;													// Audio for level automatically increasing
@@ -69,7 +67,6 @@ public partial class Tower : MonoBehaviour
 	[SerializeField] Color							gColor2Start, gColor2End, gColor2Text;							// Background + text colours for group of levels
 	[SerializeField] Color							gColor3Start, gColor3End, gColor3Text;							// Background + text colours for group of levels
 	[SerializeField] Color							gColor4, gColor4Text;											// Background + text colours for group of levels
-	[SerializeField] TouchGestures					gTouchGestureScript;											// Touch gesture/swipe recognition script
 
 	// Public (non-editor) variables & properties
 	[HideInInspector]
@@ -92,7 +89,6 @@ public partial class Tower : MonoBehaviour
 	private Stack<Block>[]					gBlockPool;														// Used for recycling blocks, to avoid regular destroying & creating
 	public float							gStartingLevel { get; private set; }							// Speed / rate to start at
 	public GameModes						gGameMode { get; private set; }									// Current type of gameplay
-	public ControlMethods					gControlMethod { get; private set; }							// Current control method (swipe, buttons, etc)
 	public int								gHighScore { get; private set; }								// Record for the current starting level
 
 	// Private variables
@@ -259,44 +255,7 @@ public partial class Tower : MonoBehaviour
 //		gPauseExitNoSaveButton.SetActive(gGameMode == GameModes.Original);
 //		gPauseQuitButton.SetActive(gGameMode != GameModes.Original);
 	}
-	
-	
-	/// <summary> Sets a new game mode & performs any appropriate actions </summary>
-	/// <param name='gameMode'> eGameMode.... name </param>
-	public void SetControlMethod(ControlMethods controlMethod)
-	{
-		gControlMethod = controlMethod;
 
-		SetButtonControlsEnabled(gControlMethod == ControlMethods.TouchButtons);
-		SetSwipeControlsEnabled(gControlMethod != ControlMethods.TouchButtons);
-
-		PlayerPrefs.SetInt(Constants.kPPControlMethod, (int)gControlMethod);
-		PlayerPrefs.Save();
-	}
-
-
-	/// <summary> Turns on/off all Button control GameObjects </summary>
-	/// <param name="enable"> True to enable, false to disable </param>
-	private void SetButtonControlsEnabled(bool enable)
-	{
-		for (int i = 0; i < gEnableOnlyForButtonControls.Length; ++i)
-		{
-			gEnableOnlyForButtonControls[i].SetActive(enable);
-		}
-	}
-	
-	
-	/// <summary> Turns on/off all Button control GameObjects </summary>
-	/// <param name="enable"> True to enable, false to disable </param>
-	private void SetSwipeControlsEnabled(bool enable)
-	{
-		for (int i = 0; i < gEnableOnlyForSwipeControls.Length; ++i)
-		{
-			gEnableOnlyForSwipeControls[i].SetActive(enable);
-		}
-	}
-	
-	
 	/// <summary> Sets the starting level and adjusts game speeds accordingly </summary>
 	/// <param name='level'> New level to start game on </param>
 	public void SetStartingLevel(int level)
@@ -318,7 +277,7 @@ public partial class Tower : MonoBehaviour
 			float colorPercent = gLevel / 8.0f;
 			TowerCamera.Instance.SetBackgroundColor(Color.Lerp(gColor0Start, gColor0End, colorPercent));
 			SetInGameUIFontColor(gColor0Text);
-			Ripple.Instance.SetMaterial(0);
+			BackgroundManager.Instance.SetMaterial(0);
 			if (changeMusic) { BGMusic.Instance.StartGameMusic(0); }
 		}
 		else if (gLevel < 16.0f)
@@ -326,7 +285,7 @@ public partial class Tower : MonoBehaviour
 			float colorPercent = (gLevel - 8.0f) / 8.0f;
 			TowerCamera.Instance.SetBackgroundColor(Color.Lerp(gColor1Start, gColor1End, colorPercent));
 			SetInGameUIFontColor(gColor0Text);
-			Ripple.Instance.SetMaterial(1);
+			BackgroundManager.Instance.SetMaterial(1);
 			if (changeMusic) { BGMusic.Instance.StartGameMusic(1); }
 		}
 		else if (gLevel < 24.0f)
@@ -334,7 +293,7 @@ public partial class Tower : MonoBehaviour
 			float colorPercent = (gLevel - 16.0f) / 8.0f;
 			TowerCamera.Instance.SetBackgroundColor(Color.Lerp(gColor2Start, gColor2End, colorPercent));
 			SetInGameUIFontColor(gColor0Text);
-			Ripple.Instance.SetMaterial(2);
+			BackgroundManager.Instance.SetMaterial(2);
 			if (changeMusic) { BGMusic.Instance.StartGameMusic(2); }
 		}
 		else if (gLevel < (float)levelMax)
@@ -342,14 +301,14 @@ public partial class Tower : MonoBehaviour
 			float colorPercent = (gLevel - 24.0f) / ((float)(levelMax) - 24.0f);
 			TowerCamera.Instance.SetBackgroundColor(Color.Lerp(gColor3Start, gColor3End, colorPercent));
 			SetInGameUIFontColor(gColor3Text);
-			Ripple.Instance.SetMaterial(3);
+			BackgroundManager.Instance.SetMaterial(3);
 			if (changeMusic) { BGMusic.Instance.StartGameMusic(3); }
 		}
 		else
 		{
 			TowerCamera.Instance.SetBackgroundColor(gColor4);
 			SetInGameUIFontColor(gColor4Text);
-			Ripple.Instance.SetMaterial(4);
+			BackgroundManager.Instance.SetMaterial(4);
 			if (changeMusic) { BGMusic.Instance.StartGameMusic(4); }
 		}
 	}
@@ -582,24 +541,6 @@ public partial class Tower : MonoBehaviour
 //		gInGameGUI.SetActive(true);
 	}
 	
-	
-	/// <summary> Pops up the window displaying the specified contents </summary>
-	/// <param name='menuGameObj'> GameObject which should be visible, all others will be turned off </param>
-	private void PopupWindow(GameObject menuGameObj)
-	{
-		// Set the required menu active
-//		gGameOverObject.SetActive(menuGameObj == gGameOverObject);
-//		gPauseObject.SetActive(menuGameObj == gPauseObject);
-//		gLevelCompleteObject.SetActive(menuGameObj == gLevelCompleteObject);
-
-		// Disable touch buttons
-		SetButtonControlsEnabled(false);
-
-		// Popup
-//		gPopupWindowObject.SetActive(true);
-	}
-	
-	
 	/// <summary> Called once per frame </summary>
 	void Update()
 	{
@@ -607,12 +548,11 @@ public partial class Tower : MonoBehaviour
 		
 		UpdateKeyboard();
 		UpdateJoystick();
-		if (gControlMethod != ControlMethods.TouchButtons) { UpdateSwipes(); }
 		UpdateSelectorSwapAnim(dTime);
 		UpdateNewBlocks(dTime);
 		UpdateBlocks(dTime);
 		UpdateLevelProgress(dTime);
-		Ripple.Instance.UpdateEffect();
+		BackgroundManager.Instance.UpdateEffect();
 
 		// Filled bar?
 		if (IsPlayerBarFull())
@@ -1109,13 +1049,7 @@ public partial class Tower : MonoBehaviour
 
 		// Update background effects
 		FlowerOfLife.Instance.SetMaxActiveMaterials(Mathf.FloorToInt(gLevel));
-		Ripple.Instance.gScrollSpeed = Ripple.Instance.gScrollSpeedSlowest - ((Ripple.Instance.gScrollSpeedSlowest - Ripple.Instance.gScrollSpeedFastest) * _progressThroughAllLevels);
-
-		// Special case for final texture - scrolls away from the player & slowly
-		if (_progressThroughAllLevels > 0.99f)
-		{
-			Ripple.Instance.gScrollSpeed.y *= 0.5f;
-		}
+		BackgroundManager.Instance.SetScrollSpeed(_progressThroughAllLevels);
 
 		// Menu selection: always recreate tower with new set of blocks
 		if (_resetTower)
@@ -1306,41 +1240,6 @@ public partial class Tower : MonoBehaviour
 			SwitchBlocks();
 		}
 	}
-	
-	
-	/// <summary> Updates directional swiping on a touch screen </summary>
-	private void UpdateSwipes()
-	{
-		switch (gTouchGestureScript.UpdateGestures())
-		{
-			case TouchGestures.eGestureTypes.None:
-				break;
-			
-			case TouchGestures.eGestureTypes.SwipeUp:
-				MoveUp();
-				break;
-			
-			case TouchGestures.eGestureTypes.SwipeLeft:
-				if (gControlMethod == ControlMethods.SwipeTower) { MoveRight(); } else { MoveLeft(); }
-				break;
-			
-			case TouchGestures.eGestureTypes.SwipeRight:
-				if (gControlMethod == ControlMethods.SwipeTower) { MoveLeft(); } else { MoveRight(); }
-				break;
-			
-			case TouchGestures.eGestureTypes.SwipeDown:
-				MoveDown();
-				break;
-			
-			case TouchGestures.eGestureTypes.Switch:
-				SwitchBlocks();
-				break;
-			
-			default:
-				throw new Exception("Unhandled touch gesture type");
-		}
-	}
-
 	
 	/// <summary> Updates joystick / gamepad controls </summary>
 	private void UpdateJoystick()

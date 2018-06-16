@@ -1,13 +1,15 @@
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Build;
 using System.IO;
 using System;
-using UnityEditor.Callbacks;
+using UnityEditor.Build.Reporting;
 
-public class BundleVersionBuildPostprocessor
+public class BundleVersionBuildPreprocessor : IPreprocessBuildWithReport
 {
-	[PostProcessBuildAttribute(1)]
-	public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject)
+	public int callbackOrder { get { return 0; } }
+
+	public void OnPreprocessBuild(BuildReport report)
 	{
 		BundleVersionChecker.RefreshNow();
 	}
@@ -17,7 +19,7 @@ public class BundleVersionBuildPostprocessor
 [InitializeOnLoad]
 public class BundleVersionChecker
 {
-	[MenuItem("Versioning/Refresh Build Version + Date")]
+	[MenuItem("Bloculus/Build/Refresh Build Version + Date")]
 	public static void RefreshNow()
 	{
 		if (CreateNewBuildVersionClassFile(PlayerSettings.bundleVersion))
@@ -31,7 +33,7 @@ public class BundleVersionChecker
 
 	/// <summary> Auto-generated class name & file name </summary>
 	const string ClassName = "CurrentBundleVersion";
-	const string TargetCodeFile = "Assets/Scripts/" + ClassName + ".cs";
+	const string TargetCodeFile = "Assets/Scripts/Versioning/" + ClassName + ".cs";
 
 	/// <summary> Constructor </summary>
 	static BundleVersionChecker()

@@ -53,7 +53,6 @@ GameObject:
   - component: {fileID: 4326278819002180}
   - component: {fileID: 114834958376120796}
   - component: {fileID: 82453191043770534}
-  - component: {fileID: 114396074262915680}
   m_Layer: 0
   m_Name: Tower
   m_TagString: Untagged
@@ -905,18 +904,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gScrollSpeed: {x: 0, y: 1}
---- !u!114 &114396074262915680
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1285797702341336}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7ab25506009c141308c2159ad092f630, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gSwipeRecogniseDistance: 5
 --- !u!114 &114834958376120796
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1065,7 +1052,7 @@ MonoBehaviour:
   gColor3Text: {r: 0, g: 0, b: 0, a: 1}
   gColor4: {r: 0.5019608, g: 0.101960786, b: 0.101960786, a: 1}
   gColor4Text: {r: 1, g: 1, b: 1, a: 1}
-  gTouchGestureScript: {fileID: 114396074262915680}
+  gTouchGestureScript: {fileID: 0}
   gColumns: 12
   gRows: 10
   gCurrentBlockTypes: 6

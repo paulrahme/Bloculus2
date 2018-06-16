@@ -36,7 +36,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4581712750910692}
   - component: {fileID: 20916349133659816}
-  - component: {fileID: 92852022487588282}
   - component: {fileID: 114685047520447912}
   - component: {fileID: 81716952353040202}
   m_Layer: 0
@@ -190,13 +189,6 @@ AudioListener:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1654980689933924}
   m_Enabled: 1
---- !u!92 &92852022487588282
-Behaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1654980689933924}
-  m_Enabled: 1
 --- !u!108 &108750645204638524
 Light:
   m_ObjectHideFlags: 1
@@ -244,16 +236,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a9cac66285a84413a20b46639211bc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gRippleAmount: 0.03
-  gScrollSpeedFastest: {x: 0, y: -6}
-  gScrollSpeedSlowest: {x: 0, y: -0.6}
-  gLevelMaterials:
+  rippleStrength: 0.03
+  scrollSpeedFastest: {x: 0, y: -6}
+  scrollSpeedSlowest: {x: 0, y: -0.6}
+  levelMaterials:
   - {fileID: 2100000, guid: 0b89381d6a3df4f4890943cf24e51277, type: 2}
   - {fileID: 2100000, guid: 7f1282340521e4d18873212c10512c89, type: 2}
   - {fileID: 2100000, guid: bf1a67ffcbc4a4bc6b9f92995a262737, type: 2}
   - {fileID: 2100000, guid: 0b89381d6a3df4f4890943cf24e51277, type: 2}
   - {fileID: 2100000, guid: 01c2a782b0c804812a41f91db544ad21, type: 2}
-  gScrollSpeed: {x: 0, y: 0}
 --- !u!114 &114685047520447912
 MonoBehaviour:
   m_ObjectHideFlags: 1
