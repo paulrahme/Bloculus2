@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class BackgroundManager : MonoBehaviour
+public class GroundController : MonoBehaviour
 {
 	const int gridRows = 64;
 
@@ -23,7 +23,7 @@ public class BackgroundManager : MonoBehaviour
 	int					numVertices;
 
 	/// <summary> Singleton instance </summary>
-	public static BackgroundManager Instance;
+	public static GroundController Instance;
 
 	/// <summary> Called when object/script activates </summary>
 	void Awake()

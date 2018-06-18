@@ -89,17 +89,8 @@ public class TowerCamera : MonoBehaviour
 	/// <summary> Updates the position from the tower's size </summary>
 	public void RefreshPosition()
 	{
-		float height = Tower.gInstance.gRows * Tower.gInstance.gBlockScale / 2.0f;
-		float minPivotDist;
-		if ((Screen.orientation == ScreenOrientation.Portrait) || (Screen.orientation == ScreenOrientation.PortraitUpsideDown))
-		{
-			minPivotDist = -12.0f;
-		}
-		else
-		{
-			minPivotDist = -6.0f;
-		}
-		pivotRadius = minPivotDist - (Tower.gInstance.gBlockScale * Tower.gInstance.gRows);
+		float height = Tower.gInstance.GetCameraHeight();
+		pivotRadius = Tower.gInstance.GetCameraDistance(-6.0f);
 		targetPosition = new Vector3(transform.position.x, height, transform.position.z);
 		isLerping = true;
 	}
@@ -120,7 +111,7 @@ public class TowerCamera : MonoBehaviour
 	/// <summary> Resets the rotation back to the starting angle </summary>
 	public void ResetRotation()
 	{
-		rawAngle = targetAngle = -(180.0f / (float)Tower.gInstance.gColumns);
+		rawAngle = targetAngle = -(180.0f / (float)Tower.gInstance.columns);
 		rotationState = RotationStates.AntiClockwise;
 	}
 

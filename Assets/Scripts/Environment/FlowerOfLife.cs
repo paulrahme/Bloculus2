@@ -18,16 +18,9 @@ public class FlowerOfLife : MonoBehaviour
 	// Inline/helper functions
 	public void		SetMaxActiveMaterials(int max) { gactiveMaterials = Mathf.Min(max, ringMaterials.Length); }
 	
-	/// <summary> Singleton instance </summary>
-	public static FlowerOfLife Instance;
-
 	/// <summary> Called when object/script activates </summary>
 	void Awake()
 	{
-		if (Instance != null)
-			throw new UnityException("Singleton instance already exists");
-		Instance = this;
-
 		MeshRenderer[] meshRenderers = GetComponentsInChildren<MeshRenderer>();
 		ringMaterials = new Material[meshRenderers.Length];
 		for (int i = 0; i < ringMaterials.Length; ++i)
@@ -67,7 +60,7 @@ public class FlowerOfLife : MonoBehaviour
 	/// <param name='_color'> Colour to pulse </param>
 	public void StartPulse(Color _color)
 	{
-		Material material = ringMaterials[Tower.gInstance.gRandom.Next(gactiveMaterials)];
+		Material material = ringMaterials[Tower.gInstance.randomGen.Next(gactiveMaterials)];
 		material.color = new Color(_color.r, _color.g, _color.b, pulseStartAlpha);
 		if (!pulsingMaterials.Contains(material))
 			pulsingMaterials.Add(material);

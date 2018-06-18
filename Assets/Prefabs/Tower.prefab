@@ -140,7 +140,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4326278819002180}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4326278819002180
 Transform:
@@ -152,9 +152,9 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 4760872281713720}
   - {fileID: 4046587594999326}
   - {fileID: 4518471076027588}
+  - {fileID: 4760872281713720}
   - {fileID: 4625883606075886}
   - {fileID: 4635679151527912}
   - {fileID: 4967463408420624}
@@ -172,7 +172,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4326278819002180}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4625883606075886
 Transform:
@@ -211,7 +211,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4326278819002180}
-  m_RootOrder: 0
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4967463408420624
 Transform:
@@ -915,6 +915,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32d6bf5031f8fe7408ef47e2dc74db29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  selectorLeft: {fileID: 1673943313502956}
+  selectorRight: {fileID: 1389732464536704}
+  audioSourceXposZpos: {fileID: 1012839262247264}
+  audioSourceXnegZpos: {fileID: 1166556642838594}
+  audioSourceXposZneg: {fileID: 1625978268989964}
+  audioSourceXnegZneg: {fileID: 1930473497494814}
   blockDefs:
   - prefabWithInnerShape: {fileID: 100004, guid: 31af8b4d0c49c42d7bf5e1f9e9210857,
       type: 2}
@@ -968,6 +974,41 @@ MonoBehaviour:
       type: 2}
     prefabSolid: {fileID: 100000, guid: 8fb5392d6043343719925092f36bd266, type: 2}
     landingAudio: {fileID: 8300000, guid: 974108a6dbbb14a218f49617f6ff29ee, type: 3}
+  fallingRingPrefab: {fileID: 100000, guid: d32082855f50b4deeb80d2aed8607f81, type: 2}
+  rippleRingPrefab: {fileID: 100000, guid: 1a0bce98e054c4aa499db61d0aeace62, type: 2}
+  blockDisappearPrefab: {fileID: 100000, guid: ec7a9bd3a1ba1465487e1377439c16fd, type: 2}
+  blockDisappearAudio:
+  - {fileID: 8300000, guid: 930ad60ad38d54daba8f1ae9dbcde1d1, type: 3}
+  - {fileID: 8300000, guid: 42fca81f30b9545f1bb880e777b8c94b, type: 3}
+  - {fileID: 8300000, guid: 182722acbddb44c6497a4b0a1dbd16ab, type: 3}
+  - {fileID: 8300000, guid: 2968635a7226c4c7eac5d99160fca941, type: 3}
+  selectorMoveAudio:
+  - {fileID: 8300000, guid: 3f53164643d684509987520c3c0737a9, type: 3}
+  - {fileID: 8300000, guid: 66d5efec5f7ca4bbeb26ad8462a2a9d0, type: 3}
+  - {fileID: 8300000, guid: 04c21b5e4890043d5b40ee05df058cee, type: 3}
+  - {fileID: 8300000, guid: 7f6609e1928904b1da7cd1e12c0f9774, type: 3}
+  selectorSwitchAudio:
+  - {fileID: 8300000, guid: ea33b4734fa094056a97b3949703b8e3, type: 3}
+  - {fileID: 8300000, guid: 2d9f7a7a2efe44385805306f45724989, type: 3}
+  gLevelEndedAudio: {fileID: 8300000, guid: e7af1cba905db44808bdae54242a73d1, type: 3}
+  gLevelCompleteAudio: {fileID: 8300000, guid: 1bedb6ceb6ef5474ab414db26a88bbeb, type: 3}
+  gLevelUpAudio: {fileID: 8300000, guid: 4e2e8a4505889400fb9c4ea76e77f9de, type: 3}
+  gAudioJarEmptying: {fileID: 8300000, guid: a5580a37ca5a14556be4f5a31260c03c, type: 3}
+  gAudioBarFilling: {fileID: 8300000, guid: 7a498598901104f8b84c55f97ad774b5, type: 3}
+  gColor0Start: {r: 0, g: 0, b: 0, a: 1}
+  gColor0End: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 1}
+  gColor0Text: {r: 0.79802144, g: 0.80784315, b: 0.30412915, a: 1}
+  gColor1Start: {r: 0.40392157, g: 0.09979238, b: 0.39968583, a: 1}
+  gColor1End: {r: 0.32352942, g: 0.38382772, b: 1, a: 1}
+  gColor1Text: {r: 1, g: 0.25069636, b: 0, a: 1}
+  gColor2Start: {r: 0.63529414, g: 0.23418684, b: 0.23418684, a: 1}
+  gColor2End: {r: 0.15114187, g: 0.6117647, b: 0.21529548, a: 1}
+  gColor2Text: {r: 1, g: 0.9667377, b: 0.58823526, a: 1}
+  gColor3Start: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 1}
+  gColor3End: {r: 1, g: 1, b: 1, a: 1}
+  gColor3Text: {r: 0, g: 0, b: 0, a: 1}
+  gColor4: {r: 0.5019608, g: 0.101960786, b: 0.101960786, a: 1}
+  gColor4Text: {r: 1, g: 1, b: 1, a: 1}
   towerRadius: 4
   levelMin: 1
   levelMax: 33
@@ -988,75 +1029,4 @@ MonoBehaviour:
   levelCompleteBonusPerTick: 100
   levelCompleteConusPerLevelPercent: 500
   selectorSwapAnimSpeed: 9
-  selectorLeft: {fileID: 1673943313502956}
-  selectorRight: {fileID: 1389732464536704}
-  gScoreTextPrefab: {fileID: 100000, guid: 63670f92ff71e4bf28820ead1fc30d12, type: 2}
-  gFallingRingPrefab: {fileID: 100000, guid: d32082855f50b4deeb80d2aed8607f81, type: 2}
-  gRippleRingPrefab: {fileID: 100000, guid: 1a0bce98e054c4aa499db61d0aeace62, type: 2}
-  gLevelProgressBarTexture: {fileID: 2800000, guid: 705beab2fb610e14a875ad14401398ef,
-    type: 3}
-  gLevelProgressBarRedTexture: {fileID: 2800000, guid: 24b1b74e83cdc4ba48546b0e492ccc0a,
-    type: 3}
-  gLevelProgressBarBgTexture: {fileID: 2800000, guid: c8ae096413a3541b39eec88bc64191e3,
-    type: 3}
-  gAudioSourceXposZpos: {fileID: 1012839262247264}
-  gAudioSourceXnegZpos: {fileID: 1166556642838594}
-  gAudioSourceXposZneg: {fileID: 1625978268989964}
-  gAudioSourceXnegZneg: {fileID: 1930473497494814}
-  gBlockDisappearPrefab: {fileID: 100000, guid: ec7a9bd3a1ba1465487e1377439c16fd,
-    type: 2}
-  gBlockDisappearAudio:
-  - {fileID: 8300000, guid: 930ad60ad38d54daba8f1ae9dbcde1d1, type: 3}
-  - {fileID: 8300000, guid: 42fca81f30b9545f1bb880e777b8c94b, type: 3}
-  - {fileID: 8300000, guid: 182722acbddb44c6497a4b0a1dbd16ab, type: 3}
-  - {fileID: 8300000, guid: 2968635a7226c4c7eac5d99160fca941, type: 3}
-  gSelectorMoveAudio:
-  - {fileID: 8300000, guid: 3f53164643d684509987520c3c0737a9, type: 3}
-  - {fileID: 8300000, guid: 66d5efec5f7ca4bbeb26ad8462a2a9d0, type: 3}
-  - {fileID: 8300000, guid: 04c21b5e4890043d5b40ee05df058cee, type: 3}
-  - {fileID: 8300000, guid: 7f6609e1928904b1da7cd1e12c0f9774, type: 3}
-  gSelectorSwitchAudio:
-  - {fileID: 8300000, guid: ea33b4734fa094056a97b3949703b8e3, type: 3}
-  - {fileID: 8300000, guid: 2d9f7a7a2efe44385805306f45724989, type: 3}
-  gEnableOnlyForSwipeControls:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  gEnableOnlyForButtonControls:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  gLevelEndedAudio: {fileID: 8300000, guid: e7af1cba905db44808bdae54242a73d1, type: 3}
-  gLevelCompleteAudio: {fileID: 8300000, guid: 1bedb6ceb6ef5474ab414db26a88bbeb, type: 3}
-  gLevelUpAudio: {fileID: 8300000, guid: 4e2e8a4505889400fb9c4ea76e77f9de, type: 3}
-  gAudioJarEmptying: {fileID: 8300000, guid: a5580a37ca5a14556be4f5a31260c03c, type: 3}
-  gAudioBarFilling: {fileID: 8300000, guid: 7a498598901104f8b84c55f97ad774b5, type: 3}
-  gColor0Start: {r: 0, g: 0, b: 0, a: 1}
-  gColor0End: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 1}
-  gColor0Text: {r: 0.79802144, g: 0.80784315, b: 0.30412915, a: 1}
-  gColor1Start: {r: 0.40392157, g: 0.09979238, b: 0.39968583, a: 1}
-  gColor1End: {r: 0.32352942, g: 0.38382772, b: 1, a: 1}
-  gColor1Text: {r: 1, g: 0.25069636, b: 0, a: 1}
-  gColor2Start: {r: 0.63529414, g: 0.23418684, b: 0.23418684, a: 1}
-  gColor2End: {r: 0.15114187, g: 0.6117647, b: 0.21529548, a: 1}
-  gColor2Text: {r: 1, g: 0.9667377, b: 0.58823526, a: 1}
-  gColor3Start: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 1}
-  gColor3End: {r: 1, g: 1, b: 1, a: 1}
-  gColor3Text: {r: 0, g: 0, b: 0, a: 1}
-  gColor4: {r: 0.5019608, g: 0.101960786, b: 0.101960786, a: 1}
-  gColor4Text: {r: 1, g: 1, b: 1, a: 1}
-  gTouchGestureScript: {fileID: 0}
-  gColumns: 12
-  gRows: 10
-  gCurrentBlockTypes: 6
-  gBlockScale: 0
-  gLevel: 0
-  gLevelInt: 0
-  blockStyle: 0
+  gameMode: 0

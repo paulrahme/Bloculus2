@@ -18,7 +18,7 @@ public class BlockDisappear : MonoBehaviour
 	/// <param name="block"> Block from which to create </param>
 	public static void StartDisappearing(Tower.Block block)
 	{
-		GameObject gameObj = (gRecycleStack.Count > 0) ? gRecycleStack.Pop() : (GameObject.Instantiate(Tower.gInstance.gBlockDisappearPrefab) as GameObject);
+		GameObject gameObj = (gRecycleStack.Count > 0) ? gRecycleStack.Pop() : (GameObject.Instantiate(Tower.gInstance.blockDisappearPrefab) as GameObject);
 
 		// Match pos/rot/scale of original block
 		Transform trans = gameObj.transform;
