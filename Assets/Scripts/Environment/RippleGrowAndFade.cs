@@ -19,7 +19,7 @@ public class RippleGrowAndFade : MonoBehaviour
 	/// <param name="color"> Ripple's colour </param>
 	public static void StartRipple(Vector3 position, Color color)
 	{
-		GameObject gameObj = (gRecycleStack.Count > 0) ? gRecycleStack.Pop() : (GameObject.Instantiate(Tower.gInstance.rippleRingPrefab) as GameObject);
+		GameObject gameObj = (gRecycleStack.Count > 0) ? gRecycleStack.Pop() : (GameObject.Instantiate(Tower.instance.rippleRingPrefab) as GameObject);
 
 		// Set position & rotation
 		gameObj.transform.parent = null;

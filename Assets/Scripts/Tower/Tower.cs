@@ -31,6 +31,7 @@ public partial class Tower : MonoBehaviour
 
 	[Header("Gameplay Tuning & Balancing")]
 	[SerializeField] float				towerRadius = 4.0f;
+	[SerializeField] float				minCameraDistance = 6.0f;
 	[SerializeField] int				levelMin = 1;
 	[SerializeField] int				levelMax = 33;
 	[SerializeField] float				fallSpeedSlowest = 2.0f;
@@ -94,7 +95,6 @@ public partial class Tower : MonoBehaviour
 	private int								BlockIdx(int col, int row) { return (row * columns) + col; }
 	private Block							GetBlock(int col, int row) { return gBlocks[BlockIdx(col, row)]; }
 	private bool							IsBlockAboutToShiftDown(Block block) { return ((block.row != 0) && (GetBlock(block.col, block.row - 1) == null)); }
-	private float							GetSelectorAngle() { return Block.CalcAngleDeg(gSelectorLeftCol + (gSelectorLeftCol + 1), columns * 2); }
 	private void							DeleteTemporaryObjects() { foreach (GameObject tempObject in GameObject.FindGameObjectsWithTag("TemporaryObject")) { GameObject.Destroy(tempObject); }	}
 	private float							GetLevelPercent() { return ((level - Convert.ToSingle(levelMin)) / Convert.ToSingle(levelMax - levelMin)); }
 	private float							GetLevelPercentCapped() { return Mathf.Min(GetLevelPercent(), 1.0f); }
@@ -102,8 +102,8 @@ public partial class Tower : MonoBehaviour
 	private void							SetScore(int score) { gScore = score; }
 	private bool							DoesGameModeSupportSaving() { return (gameMode == GameModes.Original); }
 
-	// Instance
-    public static Tower						gInstance { get; private set; }
+	/// <summary> Singleton instance </summary>
+	public static Tower instance;
 
 	#region Block pool
 	
@@ -163,7 +163,7 @@ public partial class Tower : MonoBehaviour
 	/// <summary> Called when object/script initiates </summary>
 	void Awake()
 	{
-		gInstance = this;
+		instance = this;
 
 		blockStyle = PlayerPrefs.GetInt(Constants.ppBlockStyle, 1);
 //		gProgressBarMaxScaleY = gProgressBarPlayerBar.localScale.y;
@@ -317,19 +317,13 @@ public partial class Tower : MonoBehaviour
 		// Calculate scale for block transforms
 		blockScale = towerRadius * 6.0f / columns;
 		
-		// Start rotated half a block left, so there's always a pair of blocks centered on the screen
-		if (createNewBlocks)
-		{
-			TowerCamera.Instance.ResetRotation();
-		}
-
 		// Set up starting blocks
 		gBlocks = new Block[columns * (rows + 1)];	// 1 extra row for block generators
 		if (createNewBlocks)
 		{
 			CreateRandomBlocks();
 		}
-		TowerCamera.Instance.RefreshPosition();
+		TowerCamera.instance.StartBlendingPos(rows * blockScale / 2.0f, minCameraDistance - (blockScale * rows));
 		gNewBlockTimer = gNewBlockAppearRate;
 		
 		// Initialise selector boxes
@@ -415,16 +409,6 @@ public partial class Tower : MonoBehaviour
 				}
 			}
 		}
-	}
-
-	public float GetCameraHeight()
-	{
-		return rows * blockScale / 2.0f;
-	}
-
-	public float GetCameraDistance(float _minDistance)
-	{
-		return _minDistance - (blockScale * rows);
 	}
 
 	/// <summary> Finds the topmost block in the specified column </summary>s>
@@ -1016,8 +1000,7 @@ public partial class Tower : MonoBehaviour
 		DeleteTemporaryObjects();
 		RefreshTower(false);
 		ResetScore();
-		TowerCamera.Instance.SetState(TowerCamera.GameStates.Menu);
-		
+
 		// Restore starting speeds (will also recreate tower by calling LevelChanged())
 		RestoreSpeeds();
 	}
@@ -1028,7 +1011,6 @@ public partial class Tower : MonoBehaviour
 	{
 		selectorLeft.GetComponent<AudioSource>().PlayOneShot(selectorMoveAudio[0]);
 		SetSelectorPos(WrapCol(gSelectorLeftCol + 1), gSelectorRow);
-		TowerCamera.Instance.RotateTowards(GetSelectorAngle());
 		gSelectorSwapAnimOffset = 0.0f;
 	}
 
@@ -1038,7 +1020,6 @@ public partial class Tower : MonoBehaviour
 	{
 		selectorLeft.GetComponent<AudioSource>().PlayOneShot(selectorMoveAudio[1]);
 		SetSelectorPos(WrapCol(gSelectorLeftCol - 1), gSelectorRow);
-		TowerCamera.Instance.RotateTowards(GetSelectorAngle());
 		gSelectorSwapAnimOffset = 0.0f;
 	}
 

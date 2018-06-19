@@ -3,80 +3,59 @@ using System;
 
 public class TowerCamera : MonoBehaviour
 {
-	public enum GameStates { Gameplay, Menu };					// Behaviour states
-	enum RotationStates { Idle, Clockwise, AntiClockwise };		// Rotating behaviour
-
 	#region Inspector variables
 
-	[SerializeField] float rotateSpeed = 270.0f;				// Rotation in degrees per second
-	[SerializeField] float lerpSpeed = 0.3f;					// Speed for lerping towards target position
-	[SerializeField] Camera myCam = null;						// Cached camera
+	[SerializeField] Camera myCam = null;
+	[SerializeField] AnimationCurve blendAnimCurve = null;
+	[SerializeField] float blendDuration = 0.25f;
 
-	#endregion	// Inspector variables
+	#endregion // Inspector variables
 
-	RotationStates rotationState;								// Current rotation behaviour
-	GameStates gameState;										// Current behaviour
-	public float targetAngle;									// Target rotation (degrees)
-	float rawAngle;												// Unwrapped rotation, ie. not wrapped to [0..360)
-	float pivotRadius;											// Radius of orbit spinning around the the tower
-	Vector3 targetPosition;										// Positon to lerp towards
-	bool isLerping;												// True when lerping towards target position
+	Transform myTrans;
+	Vector3 sourcePos, targetPos;
+	float sourceFov, targetFov;
+	float blendSpeed;
+	float blendProgress;
+	bool blendPos, blendFov;
 
 	/// <summary> Singleton instance </summary>
-	public static TowerCamera Instance { get; private set; }
+	public static TowerCamera instance;
 
 	/// <summary> Called when object/script activates </summary>
 	void Awake()
 	{
-		if (Instance != null)
+		if (instance != null)
 			throw new UnityException("Singleton instance already exists");
-		Instance = this;
+		instance = this;
 
-		targetPosition = transform.position;
-		isLerping = false;
-		SetState(GameStates.Menu);
+		myTrans = transform;
+		blendSpeed = 1.0f / blendDuration;
+		blendPos = blendFov = false;
 	}
 
 	/// <summary> Called once per frame </summary>
 	void Update()
 	{
-		float dTime = Time.deltaTime;
+		bool finished = false;
 
-		switch (gameState)
+		// Update progress, checking if reached the end
+		blendProgress += blendSpeed * Time.deltaTime;
+		if (blendProgress > 1.0f)
 		{
-			case GameStates.Gameplay:
-				UpdateRotation(dTime);
-				break;
-			
-			case GameStates.Menu:
-				if (isLerping)
-					UpdateLerping();
-				UpdateRotation(dTime);
-				break;
-
-			default:
-				throw new Exception("Unhandled camera state: "+gameState);
+			blendProgress = 1.0f;
+			finished = true;
 		}
-	}
 
-	/// <summary> Changes state and reacts accordingly </summary>
-	/// <param name='newState'> eStates.... state name </param>
-	public void SetState(GameStates newState)
-	{
-		gameState = newState;
-		switch (gameState)
-		{
-			case GameStates.Gameplay:
-				transform.position = targetPosition;
-				isLerping = false;
-				break;
-			
-			case GameStates.Menu:
-				break;
-			
-			default:
-				throw new Exception("Unhandled state "+gameState);
-		}
+		// Convert 0-1 progress into anim curve
+		float animatedProgress = blendAnimCurve.Evaluate(blendProgress);
+		if (blendPos)
+			transform.position = Vector3.LerpUnclamped(sourcePos, targetPos, blendProgress);
+		if (blendFov)
+			myCam.fieldOfView = (sourceFov * (1.0f - animatedProgress)) + (targetFov * animatedProgress);
+
+		// If finished, turn off updating
+		if (finished)
+			blendPos = blendFov = enabled = false;
 	}
 
 	/// <summary> Changes the color of the background </summary>
@@ -86,101 +65,28 @@ public class TowerCamera : MonoBehaviour
 		myCam.backgroundColor = _color;
 	}
 
-	/// <summary> Updates the position from the tower's size </summary>
-	public void RefreshPosition()
+	/// <summary> Starts blending to a new position </summary>
+	public void StartBlendingPos(float _height, float _distance)
 	{
-		float height = Tower.gInstance.GetCameraHeight();
-		pivotRadius = Tower.gInstance.GetCameraDistance(-6.0f);
-		targetPosition = new Vector3(transform.position.x, height, transform.position.z);
-		isLerping = true;
+		sourcePos = myTrans.position;
+		targetPos = new Vector3(sourcePos.x, _height, _distance);
+		blendPos = true;
+		blendProgress = 0.0f;
+		enabled = true;
 	}
 
-	/// <summary> Updates the camera's position, lerping towards the target position </summary>
-	private void UpdateLerping()
+	/// <summary> Starts blending to a new field of view </summary>
+	public void StartBlendingFov(float _fov)
 	{
-		transform.position = new Vector3(	Mathf.Lerp(transform.position.x, targetPosition.x, lerpSpeed),
-											Mathf.Lerp(transform.position.y, targetPosition.y, lerpSpeed), 
-											Mathf.Lerp(transform.position.z, targetPosition.z, lerpSpeed));
-		if ((targetPosition - transform.position).magnitude < 0.1f)
-		{
-			transform.position = targetPosition;
-			isLerping = false;
-		}
+		sourceFov = myCam.fieldOfView;
+		targetFov = _fov;
+		blendFov = true;
+		blendProgress = 0.0f;
+		enabled = true;
 	}
 
-	/// <summary> Resets the rotation back to the starting angle </summary>
-	public void ResetRotation()
-	{
-		rawAngle = targetAngle = -(180.0f / (float)Tower.gInstance.columns);
-		rotationState = RotationStates.AntiClockwise;
-	}
-
-	/// <summary> Starts pivot-rotating towards the specified angle </summary>
-	/// <param name='angle'> Angle in degrees </param>
-	public void RotateTowards(float angle)
-	{
-		targetAngle = angle;
-		
-		// Handle 360 degree wrap around
-		if (targetAngle - rawAngle > 180.0f)
-		{
-			rawAngle += 360.0f;
-		}
-		else if (rawAngle - targetAngle > 180.0f)
-		{
-			rawAngle -= 360.0f;
-		}
-
-		rotationState = (targetAngle > rawAngle) ? RotationStates.AntiClockwise : RotationStates.Clockwise;
-	}
-
-	/// <summary> Rotates the tower towards the current selection </summary>
-	/// <param name='dTime'> Time elapsed since last Update() </param>
-	private void UpdateRotation(float dTime)
-	{
-		switch (rotationState)
-		{
-			case RotationStates.Idle:
-				break;
-			
-			case RotationStates.Clockwise:
-				rawAngle -= rotateSpeed * dTime;
-				if (rawAngle < targetAngle)
-				{
-					rawAngle = targetAngle;
-					rotationState = RotationStates.Idle;
-				}
-				UpdatePivot();
-				break;
-			
-			case RotationStates.AntiClockwise:
-				rawAngle += rotateSpeed * dTime;
-				if (rawAngle > targetAngle)
-				{
-					rawAngle = targetAngle;
-					rotationState = RotationStates.Idle;
-				}
-				UpdatePivot();
-				break;
-			
-			default:
-				throw new Exception("Unhandled tower state: "+rotationState);
-		}
-	}
-	
-	/// <summary> Updates the pivoted position & angle </summary>
-	void UpdatePivot()
-	{
-		float angleRad = (rawAngle + 180.0f) * Mathf.PI / 180.0f;
-		targetPosition = new Vector3(pivotRadius * Mathf.Sin(angleRad), targetPosition.y, pivotRadius * Mathf.Cos(angleRad));
-		if (gameState == GameStates.Menu)
-		{
-			isLerping = true;
-		}
-		else
-		{
-			transform.position = targetPosition;
-		}
-		transform.eulerAngles = new Vector3(0.0f, rawAngle + 180, 0.0f);
-	}
+	[ContextMenu("Blend FOV to 40")] void BlendFov40() { StartBlendingFov(40.0f); }
+	[ContextMenu("Blend FOV to 120")] void BlendFov120() { StartBlendingFov(120.0f); }
+	[ContextMenu("Blend Pos to -10")] void BlendPosNeg10() { StartBlendingPos(1.0f, -10.0f); }
+	[ContextMenu("Blend Pos to -100")] void BlendPosNeg100() { StartBlendingPos(1.0f, -100.0f); }
 }

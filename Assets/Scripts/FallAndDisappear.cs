@@ -34,7 +34,7 @@ public class FallAndDisappear : MonoBehaviour
 			{
 				// Add ripple & create pulse
 				GroundController.Instance.AddRipple(transform.position.x);
-				Vector3 ripplePos = new Vector3(transform.position.x, GroundController.Instance.transform.position.y, Tower.gInstance.transform.position.z);
+				Vector3 ripplePos = new Vector3(transform.position.x, GroundController.Instance.transform.position.y, Tower.instance.transform.position.z);
 				RippleGrowAndFade.StartRipple(ripplePos, GetComponent<Renderer>().material.color);
 			}
 

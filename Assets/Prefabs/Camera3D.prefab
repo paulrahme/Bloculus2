@@ -162,7 +162,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa26466a40ea949c0a4cc1505a9b494f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotateSpeed: 270
-  lerpSpeed: 0.3
   myCam: {fileID: 20916349133659816}
-  targetAngle: 0
+  blendAnimCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: -0.000030517578
+      inSlope: 0.046684407
+      outSlope: 0.046684407
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.06413301
+    - serializedVersion: 3
+      time: 0.5
+      value: 0.49319026
+      inSlope: 3.3296952
+      outSlope: 3.3296952
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.042755246
+    - serializedVersion: 3
+      time: 1
+      value: 0.99850464
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  blendDuration: 0.25

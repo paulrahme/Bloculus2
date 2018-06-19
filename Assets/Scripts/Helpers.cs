@@ -7,6 +7,9 @@ using System.Text;
 
 public class Helpers : MonoBehaviour
 {
+	public static readonly Vector3 vec3Zero = new Vector3(0f, 0f, 0f);		// Cached properly because Vector3.zero isn't
+	public static readonly Vector3 vec3One = new Vector3(1f, 1f, 1f);		// Cached properly because Vector3.one isn't
+
 	/// <summary> Recursively sets the GameObject & all child objects to visible/invisible </summary>
 	/// <param name='gameObj'> Root GameObject </param>
 	/// <param name='visible'> True for visible, false for invisible </param>

@@ -44,7 +44,7 @@ public class Environment : MonoBehaviour
 	public void SetBackground(int _bgIndex, float _progress, int _musicIdx)
 	{
 		BgColor colors = bgColors[_bgIndex];
-		TowerCamera.Instance.SetBackgroundColor(Color.Lerp(colors.colorStart, colors.colorEnd, _progress));
+		TowerCamera.instance.SetBackgroundColor(Color.Lerp(colors.colorStart, colors.colorEnd, _progress));
 		GroundController.Instance.SetMaterial(_bgIndex);
 		if (_musicIdx >= 0)
 			musicController.StartGameMusic(_musicIdx);
