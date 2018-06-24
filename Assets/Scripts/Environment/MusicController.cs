@@ -5,7 +5,7 @@ public class MusicController : MonoBehaviour
 	#region Inspector variables
 
 	[Header("Hierarchy")]
-	[SerializeField] AudioSource	audioSource;
+	[SerializeField] AudioSource	audioSource = null;
 
 	[Header("Audio clips")]
 	[SerializeField] AudioClip		titleMusic = null;

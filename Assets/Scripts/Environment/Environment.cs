@@ -41,13 +41,45 @@ public class Environment : MonoBehaviour
 		instance = this;
 	}
 
-	public void SetBackground(int _bgIndex, float _progress, int _musicIdx)
+	/// <summary> Changes the background to match the level </summary>
+	/// <param name="_level"> Level numer </param>
+	/// <param name="_levelMax"> Highest level </param>
+	/// <returns> The index of the group of levels this one is in </returns>
+	public int SetBackground(float _level, float _levelMax)
 	{
-		BgColor colors = bgColors[_bgIndex];
-		TowerCamera.instance.SetBackgroundColor(Color.Lerp(colors.colorStart, colors.colorEnd, _progress));
-		GroundController.Instance.SetMaterial(_bgIndex);
-		if (_musicIdx >= 0)
-			musicController.StartGameMusic(_musicIdx);
+		float progress;
+		int levelGroup;
+		if (_level < 8.0f)
+		{
+			progress = _level / 8.0f;
+			levelGroup = 0;
+		}
+		else if (_level < 16.0f)
+		{
+			progress = (_level - 8.0f) / 8.0f;
+			levelGroup = 1;
+		}
+		else if (_level < 24.0f)
+		{
+			progress = (_level - 16.0f) / 8.0f;
+			levelGroup = 2;
+		}
+		else if (_level < _levelMax)
+		{
+			progress = (_level - 24.0f) / 8.0f;
+			levelGroup = 3;
+		}
+		else
+		{
+			progress = 0;
+			levelGroup = 4;
+		}
+
+		BgColor colors = bgColors[levelGroup];
+		TowerCamera.instance.SetBackgroundColor(Color.Lerp(colors.colorStart, colors.colorEnd, progress));
+		GroundController.Instance.SetMaterial(levelGroup);
+
+		return levelGroup;
 	}
 
 	public void GameOver()

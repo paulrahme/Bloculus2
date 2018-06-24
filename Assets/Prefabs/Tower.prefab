@@ -917,10 +917,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   selectorLeft: {fileID: 1673943313502956}
   selectorRight: {fileID: 1389732464536704}
-  audioSourceXposZpos: {fileID: 1012839262247264}
-  audioSourceXnegZpos: {fileID: 1166556642838594}
-  audioSourceXposZneg: {fileID: 1625978268989964}
-  audioSourceXnegZneg: {fileID: 1930473497494814}
+  audioSourceXposZpos: {fileID: 82836748197482254}
+  audioSourceXnegZpos: {fileID: 82857210634352206}
+  audioSourceXposZneg: {fileID: 82636840102342524}
+  audioSourceXnegZneg: {fileID: 82557263675622428}
   blockDefs:
   - prefabWithInnerShape: {fileID: 100004, guid: 31af8b4d0c49c42d7bf5e1f9e9210857,
       type: 2}
@@ -990,26 +990,8 @@ MonoBehaviour:
   selectorSwitchAudio:
   - {fileID: 8300000, guid: ea33b4734fa094056a97b3949703b8e3, type: 3}
   - {fileID: 8300000, guid: 2d9f7a7a2efe44385805306f45724989, type: 3}
-  gLevelEndedAudio: {fileID: 8300000, guid: e7af1cba905db44808bdae54242a73d1, type: 3}
-  gLevelCompleteAudio: {fileID: 8300000, guid: 1bedb6ceb6ef5474ab414db26a88bbeb, type: 3}
-  gLevelUpAudio: {fileID: 8300000, guid: 4e2e8a4505889400fb9c4ea76e77f9de, type: 3}
-  gAudioJarEmptying: {fileID: 8300000, guid: a5580a37ca5a14556be4f5a31260c03c, type: 3}
-  gAudioBarFilling: {fileID: 8300000, guid: 7a498598901104f8b84c55f97ad774b5, type: 3}
-  gColor0Start: {r: 0, g: 0, b: 0, a: 1}
-  gColor0End: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 1}
-  gColor0Text: {r: 0.79802144, g: 0.80784315, b: 0.30412915, a: 1}
-  gColor1Start: {r: 0.40392157, g: 0.09979238, b: 0.39968583, a: 1}
-  gColor1End: {r: 0.32352942, g: 0.38382772, b: 1, a: 1}
-  gColor1Text: {r: 1, g: 0.25069636, b: 0, a: 1}
-  gColor2Start: {r: 0.63529414, g: 0.23418684, b: 0.23418684, a: 1}
-  gColor2End: {r: 0.15114187, g: 0.6117647, b: 0.21529548, a: 1}
-  gColor2Text: {r: 1, g: 0.9667377, b: 0.58823526, a: 1}
-  gColor3Start: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 1}
-  gColor3End: {r: 1, g: 1, b: 1, a: 1}
-  gColor3Text: {r: 0, g: 0, b: 0, a: 1}
-  gColor4: {r: 0.5019608, g: 0.101960786, b: 0.101960786, a: 1}
-  gColor4Text: {r: 1, g: 1, b: 1, a: 1}
   towerRadius: 4
+  minCameraDistance: 6
   levelMin: 1
   levelMax: 33
   fallSpeedSlowest: 2
@@ -1026,7 +1008,5 @@ MonoBehaviour:
   blockTypesMin: 4
   ringFillCapacityMin: 45
   ringFilleCapacityMax: 150
-  levelCompleteBonusPerTick: 100
-  levelCompleteConusPerLevelPercent: 500
   selectorSwapAnimSpeed: 9
   gameMode: 0
