@@ -11,18 +11,18 @@ public class BlockDisappear : MonoBehaviour
 	// Private variables
 	private Color						gColor;											// Fading colour
 	private Material					gMaterial;										// Cached material
-	private static Stack<GameObject>	gRecycleStack = new Stack<GameObject>();		// Stack of GameObjects ready for reuse
+	private static Stack<GameObject>	gRecycleStack = new Stack<GameObject>();        // Stack of GameObjects ready for reuse
 
 
 	/// <summary> Creates (or reuses) a disappearing block GameObject </summary>
-	/// <param name="block"> Block from which to create </param>
-	public static void StartDisappearing(Tower.Block block)
+	/// <param name="_block"> Block from which to create </param>
+	public static void StartDisappearing(Tower.Block _block, GameObject _disappearPrefab)
 	{
-		GameObject gameObj = (gRecycleStack.Count > 0) ? gRecycleStack.Pop() : (GameObject.Instantiate(Tower.instance.blockDisappearPrefab) as GameObject);
+		GameObject gameObj = (gRecycleStack.Count > 0) ? gRecycleStack.Pop() : Instantiate(_disappearPrefab);
 
 		// Match pos/rot/scale of original block
 		Transform trans = gameObj.transform;
-		Transform blockTrans = block.gameObj.transform;
+		Transform blockTrans = _block.gameObj.transform;
 		trans.parent = blockTrans.parent;
 		trans.localPosition = blockTrans.localPosition;
 		trans.localRotation = blockTrans.localRotation;

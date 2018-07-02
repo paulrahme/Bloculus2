@@ -3,52 +3,56 @@ using System.Collections;
 
 public class FallAndDisappear : MonoBehaviour
 {
-	// Public variables
-	public float				gLifetime = 2.0f;															// How long it takes to disappear, in seconds
-	public Vector3				gAcceleration = new Vector3(0.0f, -0.2f, 0.0f);								// Gravitational acceleration (units/second)
-	public float				gSpinSpeed = 0.0f;															// How quickly it rotates around the y axis (degrees/second)
-	public bool					gCreateShockwave = true;													// Create a ripple ring when it lands/disappears?
+	#region Inspector variables
+
+	[SerializeField] float		lifetime = 2.0f;
+	[SerializeField] Vector3	acceleration = new Vector3(0.0f, -0.2f, 0.0f);
+	[SerializeField] float		spinSpeed = 720.0f;
+	[SerializeField] bool		createShockwave = true;
+
+	#endregion	// Inspector variables
+
+	float lifeCounter;
+	Vector3 velocity;
+	Vector3 cachedSpinVec;
+	Transform myTrans;
+	Material myMaterial;
 	
-	// Private variables
-	private float				gLifeCounter;																// Fade counter
-	private Vector3				gVelocity;																	// Current movement velocity
-	private Vector3				gCachedSpinVec;																// Used to avoid new Vector3() every update
-	
-	/// <summary> Called when object/script initiates </summary>
+	/// <summary> Called when object/script activates </summary>
 	void Awake()
 	{
-		gLifeCounter = 1.0f;
-		gVelocity = Vector3.zero;
-		gCachedSpinVec = new Vector3(0.0f, gSpinSpeed, 0.0f);
+		myTrans = transform;
+		myMaterial = GetComponent<Renderer>().material;
+		lifeCounter = 1.0f;
+		velocity = Vector3.zero;
+		cachedSpinVec = new Vector3(0.0f, spinSpeed, 0.0f);
 	}
 	
-	/// <summary> Called once per frame </summary>
-	void Update()
+	/// <summary> Called from the parent Tower's Update() </summary>
+	public void UpdateFalling(Tower _parentTower)
 	{
 		float dTime = Time.deltaTime;
 
-		gLifeCounter -= dTime / gLifetime;
-		if (gLifeCounter <= 0.0f)
+		lifeCounter -= dTime / lifetime;
+		if (lifeCounter <= 0.0f)
 		{
-			if (gCreateShockwave)
+			if (createShockwave)
 			{
 				// Add ripple & create pulse
-				GroundController.Instance.AddRipple(transform.position.x);
-				Vector3 ripplePos = new Vector3(transform.position.x, GroundController.Instance.transform.position.y, Tower.instance.transform.position.z);
-				RippleGrowAndFade.StartRipple(ripplePos, GetComponent<Renderer>().material.color);
+				GroundController.Instance.AddRipple(myTrans.position.x);
+				Vector3 ripplePos = new Vector3(myTrans.position.x, GroundController.Instance.transform.position.y, _parentTower.transform.position.z);
+				RippleGrowAndFade.StartRipple(_parentTower.rippleRingPrefab, ripplePos, myMaterial.color);
 			}
 
 			// Disappear
-			GameObject.Destroy(gameObject);
+			Destroy(gameObject);	// TODO: pool/recycle
 		}
 		else
 		{
-			gVelocity += gAcceleration * dTime;
-			transform.position += gVelocity;
-			if (gSpinSpeed != 0.0f)
-			{
-				transform.eulerAngles += gCachedSpinVec * dTime;
-			}
+			velocity += acceleration * dTime;
+			myTrans.position += velocity;
+			if (spinSpeed != 0.0f)
+				transform.eulerAngles += cachedSpinVec * dTime;
 		}
 	}	
 }

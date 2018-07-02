@@ -60,7 +60,7 @@ public class FlowerOfLife : MonoBehaviour
 	/// <param name='_color'> Colour to pulse </param>
 	public void StartPulse(Color _color)
 	{
-		Material material = ringMaterials[Tower.instance.randomGen.Next(gactiveMaterials)];
+		Material material = ringMaterials[GameMaster.randomGen.Next(gactiveMaterials)];
 		material.color = new Color(_color.r, _color.g, _color.b, pulseStartAlpha);
 		if (!pulsingMaterials.Contains(material))
 			pulsingMaterials.Add(material);

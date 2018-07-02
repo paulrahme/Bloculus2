@@ -4,9 +4,6 @@ using System;
 
 public partial class Tower : MonoBehaviour
 {
-	// Enums & constants
-	public enum GameModes { Original, Arcade, TimeChallenge, SpeedChallenge, ScoreChallenge };
-
 	#region Inspector variables
 
 	[Header("Hierarchy")]
@@ -31,13 +28,8 @@ public partial class Tower : MonoBehaviour
 	[Header("Gameplay Tuning & Balancing")]
 	[SerializeField] float				towerRadius = 4.0f;
 	[SerializeField] float				minCameraDistance = 6.0f;
-	[SerializeField] int				levelMin = 1;
-	[SerializeField] int				levelMax = 33;
 	[SerializeField] float				fallSpeedSlowest = 2.0f;
 	[SerializeField] float				fallSpeedFastest = 7.0f;
-	[SerializeField] float				levelIncreaseRateFull = 0.00666f;
-	[SerializeField] float				levelIncreaseRateShorter = 0.01666f;
-	[SerializeField] float				levelIncreaseRateArcade = 0.02333f;
 	[SerializeField] float				newBlockAppearRateSlowest = 4.5f;
 	[SerializeField] float				newBlockAppearRateFastest = 2.0f;
 	[SerializeField] int				columnsMin = 10;
@@ -45,8 +37,6 @@ public partial class Tower : MonoBehaviour
 	[SerializeField] int				rowsMin = 5;
 	[SerializeField] int				rowsMax = 16;
 	[SerializeField] int				blockTypesMin = 4;
-	[SerializeField] int				ringFillCapacityMin = 45;
-	[SerializeField] int				ringFilleCapacityMax = 150;
 	[SerializeField] float				selectorSwapAnimSpeed = 9.0f;
 
 	#endregion	// Inspector variables
@@ -55,42 +45,24 @@ public partial class Tower : MonoBehaviour
 	internal int rows = 10;
 	int currentBlockTypes = 6;
 	float blockScale;
-	public System.Random randomGen = new System.Random();
-	float level;
-	int levelInt;
 	int blockStyle;
 	Stack<Block>[] blockPool;	// Array of stacks per block type
-	float startingLevel;
-	public GameModes gameMode;
 	Block[] blocks;
 	int selectorLeftCol, selectorRow;
 	float newBlockTimer;
-	int score;
 	float fallSpeed;
 	float newBlockAppearRate;
-	float scoreDifficultyMult;
 	bool joystickDirectionHeld;
 	float selectorSwapAnimOffset;
-	string highScoreName;
-	float levelIncreaseRate;
-	int playerBarCapacity;
-	int playerBarValue;
 	AudioSource selectorAudioSource;
 	List<int> blocksToDelete = new List<int>();
+	List<FallAndDisappear> fallingRings = new List<FallAndDisappear>();
 
 	// Quick helper functions
 	int		BlockIdx(int _col, int _row) { return (_row * columns) + _col; }
 	Block	GetBlock(int _col, int _row) { return blocks[BlockIdx(_col, _row)]; }
 	bool	IsBlockAboutToShiftDown(Block _block) { return ((_block.row != 0) && (GetBlock(_block.col, _block.row - 1) == null)); }
-	void	DeleteTemporaryObjects() { foreach (GameObject tempObject in GameObject.FindGameObjectsWithTag("TemporaryObject")) { GameObject.Destroy(tempObject); }	}
-	float	GetLevelPercent() { return ((level - Convert.ToSingle(levelMin)) / Convert.ToSingle(levelMax - levelMin)); }
-	float	GetLevelPercentCapped() { return Mathf.Min(GetLevelPercent(), 1.0f); }
-	bool	IsPlayerBarFull() { return (playerBarValue >= playerBarCapacity); }
-	void	SetScore(int _score) { score = _score; }
-	bool	DoesGameModeSupportSaving() { return (gameMode == GameModes.Original); }
-
-	/// <summary> Singleton instance </summary>
-	public static Tower instance;
+	void	DeleteTemporaryObjects() { foreach (GameObject tempObject in GameObject.FindGameObjectsWithTag("TemporaryObject")) { Destroy(tempObject); }	}
 
 	#region Block pool
 	
@@ -144,31 +116,17 @@ public partial class Tower : MonoBehaviour
 	/// <summary> Called when object/script initiates </summary>
 	void Awake()
 	{
-		if (instance != null)
-			throw new UnityException("Singleton instance already exists");
-		instance = this;
-
 		selectorAudioSource = selectorLeft.GetComponent<AudioSource>();
 		blockStyle = PlayerPrefs.GetInt(Constants.ppBlockStyle, 1);
-//		gProgressBarMaxScaleY = gProgressBarPlayerBar.localScale.y;
 
 		PrepareObjectPools();
 	}
 
-	/// <summary> Called before the first Update() </summary>
-	void Start()
-	{
-		SetNewLevel(0.0f, true);
-		SetGameMode(GameModes.Original);
-		ResetTower();
-	}
-
-	void ResetTower()
+	public void ResetTower()
 	{
 		ClearBlocks(true);
 		DeleteTemporaryObjects();
 		RefreshTower(false);
-		ResetScore();
 		RestoreSpeeds();
 	}
 
@@ -183,64 +141,10 @@ public partial class Tower : MonoBehaviour
 		}
 	}
 
-	/// <summary> Sets a new game mode & performs any appropriate actions </summary>
-	/// <param name='_gameMode'> eGameMode.... name </param>
-	public void SetGameMode(GameModes _gameMode)
-	{
-		gameMode = _gameMode;
-		switch (gameMode)
-		{
-			case GameModes.Original:
-				SetStartingLevel(PlayerPrefs.GetInt(Constants.ppkPPStartingLevel, 1));
-				levelIncreaseRate = levelIncreaseRateFull;
-				break;
-		
-			case GameModes.Arcade:
-				SetStartingLevel(1);
-				levelIncreaseRate = levelIncreaseRateArcade;
-				break;
-		
-			case GameModes.TimeChallenge:
-			case GameModes.SpeedChallenge:
-				SetStartingLevel(PlayerPrefs.GetInt(Constants.ppkPPStartingLevel, 1));
-				levelIncreaseRate = 0;
-				break;
-		
-			case GameModes.ScoreChallenge:
-				SetStartingLevel(PlayerPrefs.GetInt(Constants.ppkPPStartingLevel, 1));
-				levelIncreaseRate = levelIncreaseRateShorter;
-				break;
-		
-			default:
-				throw new Exception("Unhandled GameMode '"+gameMode+"'");
-		}
-	}
-
-	/// <summary> Sets the starting level and adjusts game speeds accordingly </summary>
-	/// <param name='level'> New level to start game on </param>
-	public void SetStartingLevel(int level)
-	{
-		startingLevel = level;
-		RestoreSpeeds();
-		UpdateBackground(false);
-	}
-
-	/// <summary> Updates the background colour, texture etc. </summary>
-	/// <param name="_changeMusic"> When true, change background music as necessary </param>
-	void UpdateBackground(bool _changeMusic)
-	{
-		int musicIdx = Environment.instance.SetBackground(level, levelMax);
-		if (_changeMusic)
-			Environment.instance.musicController.StartGameMusic(musicIdx);
-
-	}
-
 	/// <summary> Resets the current speed values to their starting values </summary>
-	void RestoreSpeeds()
+	public void RestoreSpeeds()
 	{
-		level = startingLevel;
-		levelInt = Mathf.FloorToInt(startingLevel);
-		SetNewLevel(GetLevelPercent(), false);
+		SetNewLevel(GameMaster.instance.GetProgressThroughLevels(), false);
 		newBlockTimer = newBlockAppearRate;
 	}
 	
@@ -270,7 +174,7 @@ public partial class Tower : MonoBehaviour
 	public void ClearBlock(Block _block, bool _disappearAnim)
 	{
 		if (_disappearAnim)
-			BlockDisappear.StartDisappearing(_block);
+			BlockDisappear.StartDisappearing(_block, blockDisappearPrefab);
 
 		blocks[BlockIdx(_block.col, _block.row)] = null;
 		RecycleBlock(_block);
@@ -297,18 +201,10 @@ public partial class Tower : MonoBehaviour
 	/// <param name='_paused'> True to pause, false to unpause </param>
 	void PauseDropsAndShockwaves(bool _paused)
 	{
-		foreach (GameObject tempObject in GameObject.FindGameObjectsWithTag("TemporaryObject"))
-		{
-			FallAndDisappear fallScript = tempObject.GetComponent<FallAndDisappear>();
-			if (fallScript != null)
-				fallScript.enabled = !_paused;
-			else
-			{
-				RippleGrowAndFade growScript = tempObject.GetComponent<RippleGrowAndFade>();
-				if (growScript != null)
-					growScript.enabled = !_paused;
-			}
-		}
+		for (int i = 0; i < fallingRings.Count; ++i)
+			fallingRings[i].enabled = !_paused;
+
+		Environment.instance.PauseAllShockwaves(_paused);
 	}
 
 	/// <summary> Sets up some random blocks in the tower </summary>
@@ -319,16 +215,14 @@ public partial class Tower : MonoBehaviour
 			for (int col = 0; col < columns; ++col)
 			{
 				// Create a block randomly
-				if ((randomGen.Next() & 4) != 0)
+				if ((GameMaster.randomGen.Next() & 4) != 0)
 				{
-					int blockIdx = randomGen.Next() % currentBlockTypes;
+					int blockIdx = GameMaster.randomGen.Next() % currentBlockTypes;
 					blocks[BlockIdx(col, row)] = GetNewBlock(blockIdx, col, row);
-					GetBlock(col, row).fallingOffset = (float)randomGen.NextDouble();
+					GetBlock(col, row).fallingOffset = (float)GameMaster.randomGen.NextDouble();
 				}
 				else
-				{
 					blocks[BlockIdx(col, row)] = null;
-				}
 			}
 		}
 	}
@@ -349,235 +243,45 @@ public partial class Tower : MonoBehaviour
 		return block;
 	}
 	
-	/// <summary> Triggered as soon as the frontend disappears and the game begins </summary>
-	public void GameHasBegun()
+	/// <summary> Called from GameMaster's Update() </summary>
+	public void UpdateTower(float _dTime, out int _scoreChainThisFrame)
 	{
-		switch (gameMode)
-		{
-			case GameModes.Original:
-			case GameModes.Arcade:
-				break;
-				
-			case GameModes.TimeChallenge:
-			case GameModes.SpeedChallenge:
-//				timeChallengeStartTime = Time.fixedTime;
-				break;
-				
-			case GameModes.ScoreChallenge:
-//				timeChallengeStartTime = Time.fixedTime;
-				break;
-
-			default:
-				throw new Exception("Unhandled GameMode "+gameMode);
-		}
-		UpdateBackground(true);
-	}
-	
-	/// <summary> Called once per frame </summary>
-	void Update()
-	{
-		float dTime = Time.deltaTime;
-
 #if UNITY_STANDALONE
 		UpdateKeyboard();
 #endif
 		UpdateJoystick();
-		UpdateSelectorSwapAnim(dTime);
-		UpdateNewBlocks(dTime);
-		UpdateBlocks(dTime);
-		UpdateLevelProgress(dTime);
-		GroundController.Instance.UpdateEffect();
+		UpdateSelectorSwapAnim(_dTime);
+		UpdateNewBlocks(_dTime);
+		_scoreChainThisFrame = UpdateBlocks(_dTime);
 
-		// Filled bar?
-		if (IsPlayerBarFull())
-		{
-			// Ensure player bar has not overflowed
-			playerBarValue = playerBarCapacity;
-
-			// Trigger level complete sequence
-//			LevelComplete();
-		}
-
-#if UNITY_EDITOR
-		HandleScreenshotKey();
-#endif
+		// Update all falling rings
+		for (int i = 0; i < fallingRings.Count; ++i)
+			fallingRings[i].UpdateFalling(this);
 	}
 	
-#if UNITY_EDITOR
-	/// <summary> Handles debug key/s for saving screenshots </summary>
-	void HandleScreenshotKey()
-	{
-		// Save screenshot
-		if (Input.GetKeyDown(KeyCode.S) && Input.GetKey(KeyCode.LeftShift))
-		{
-			string fileName = "Screenshots/"+Screen.width+"x"+Screen.height+"_"+System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm_ss")+".png";
-			ScreenCapture.CaptureScreenshot(fileName);
-			Debug.Log("Saved screenshot '"+fileName+"'");
-		}
-	}
-#endif
-
 	/// <summary> Restarts with the previous settings </summary>
 	public void ReplayGame()
 	{
 		ClearBlocks(true);
 		DeleteTemporaryObjects();
 		RestoreSpeeds();
-		ResetScore();
 		CreateRandomBlocks();
-		GameHasBegun();
 	}
-
-	/// <summary> Closes the popup window & continues gameplay </summary>
-	public void UnpauseGame()
-	{
-		PauseDropsAndShockwaves(false);
-		Environment.instance.musicController.UnpauseGameMusic();
-	}
-
-	/// <summary> Resets the score & the jar </summary>
-	void ResetScore()
-	{
-		SetScore(0);
-		ResetPlayerBar();
-	}
-	
-	/// <summary> Starts the Game Over sequence </summary>
-	void GameOver()
-	{
-		Environment.instance.GameOver();
-	}
-	
-	/// <summary> Resets the player's progress bar </summary>
-	void ResetPlayerBar()
-	{
-		playerBarValue = 0;
-	}
-
-/*
-	/// <summary> Starts a new state in the "level complete" sequence </summary>
-	/// <param name='state'> eLevelCompleteStates.... value </param>
-	void LevelCompleteSetState(LevelStates state)
-	{
-		gLCStateTime = gLCPrevTimeOffset = Time.fixedTime;
-		gLCState = state;
-	}	
-
-	/// <summary> Prepares & pops up the "level complete" sequence </summary>
-	public void LevelComplete()
-	{
-		DeleteTemporaryObjects();
-		gLCDropBonus = 0;
-		gLCFullJarBonus = 0;
-		gLCLevelJustCompleted = levelInt;
-//		gLevelCompleteBonusTextMesh.text = string.Empty;
-		gLCJarFull = IsPlayerBarFull();
-		switch (gameMode)
-		{
-			case GameModes.Original:
-				if (gLCJarFull)
-					Environment.instance.LevelComplete();
-				else
-					Environment.instance.LevelEnded();
-				LevelCompleteSetState(LevelStates.Popup);
-//				PopupWindow(gLevelCompleteObject);
-//				gLevelCompleteButtonsObject.SetActive(false);
-//				gLevelCompleteTitleTextMesh.text = "LEVEL "+gLCLevelJustCompleted+ (gLCJarFull ? "\nCOMPLETED!" : "\nHAS ENDED.");
-				break;
-			
-			case GameModes.Arcade:
-				if (gLCJarFull)
-				{
-					Environment.instance.musicController.PauseGameMusic();
-					LevelCompleteSetState(LevelStates.JarCount);
-//					PopupWindow(gLevelCompleteObject);
-//					gLevelCompleteButtonsObject.SetActive(false);
-//					gLevelCompleteTitleTextMesh.text = jarFullTitleString;
-				}
-				else
-				{
-					QuickLevelUp();
-				}
-				break;
-			
-			case GameModes.TimeChallenge:
-			case GameModes.SpeedChallenge:
-				level = levelInt + 1.0f;
-				if ((gameMode == GameModes.SpeedChallenge) || (Mathf.FloorToInt(level) >= startingLevel + 5))
-				{
-					SetScore(Mathf.FloorToInt((Time.fixedTime - gTimeChallengeStartTime) * 1000.0f));	// *1000 to preserve milliseconds
-					Environment.instance.LevelComplete();
-				}
-				else
-				{
-					Environment.instance.LevelComplete(true);
-					QuickLevelUp(false);
-					ResetPlayerBar();
-				}
-				break;
-			
-			case GameModes.ScoreChallenge:
-				if (Mathf.FloorToInt(level) >= startingLevel + 5)
-					Environment.instance.LevelEnded();
-				else
-					QuickLevelUp();
-				break;
-		}
-//		gLevelCompleteBonusTextMesh.text = string.Empty;
-	}
-*/	
-	/// <summary> Triggers the "Level up" fading text </summary>
-	/// <param name='_playSound'> True to play the "level up" sound </param>
-	void QuickLevelUp(bool _playSound = true)
-	{
-		if (_playSound)
-			Environment.instance.LevelUp();
-
-		UpdateBackground(true);
-	}
-
-
-	/// <summary> Updates the gradual level increase, reacting if the level has been completed </summary>
-	/// <param name='_dTime'> Time elapsed since last Update() </param>
-	void UpdateLevelProgress(float _dTime)
-	{
-		level += levelIncreaseRate * _dTime;
-		
-		// Has level just changed?
-		if (Mathf.FloorToInt(level) != levelInt)
-		{
-			// Update speeds & tower layout for next level
-			float levelPercent = GetLevelPercentCapped();
-			SetNewLevel(levelPercent, false);
-			
-			// If it's in gameplay, trigger the "level complete" sequence
-//			if (!gFrontendMenuObject.activeSelf && !IsGameFrozen())
-//				LevelComplete();
-
-			levelInt = Mathf.FloorToInt(level);
-		}
-	}
-	
 
 	/// <summary> Sets the speeds & tower layout </summary>
 	/// <param name='_progressThroughAllLevels'> Speed scale: 0.0f = slowest, 1.0f = fastest </param>
-	void SetNewLevel(float _progressThroughAllLevels, bool _resetTower)
+	public void SetNewLevel(float _progressThroughAllLevels, bool _resetTower)
 	{
 		// Update speeds
 		fallSpeed = fallSpeedSlowest + ((fallSpeedFastest - fallSpeedSlowest) * _progressThroughAllLevels);
 		newBlockAppearRate = newBlockAppearRateSlowest + ((newBlockAppearRateFastest - newBlockAppearRateSlowest) * _progressThroughAllLevels);
 
-		// Update block types & jar capacity
+		// Update block types
 		currentBlockTypes = blockTypesMin + Convert.ToInt32(Convert.ToSingle(blockDefs.Length - blockTypesMin) * _progressThroughAllLevels);
-		playerBarCapacity = ringFillCapacityMin + Convert.ToInt32(Convert.ToSingle(ringFilleCapacityMax - ringFillCapacityMin) * _progressThroughAllLevels);
 
 		// Calculate columns & rows for new level
 		int newColumns = columnsMin + Convert.ToInt32(Convert.ToSingle(columnsMax - columnsMin) * _progressThroughAllLevels);
 		int newRows = rowsMin + Convert.ToInt32(Convert.ToSingle(rowsMax - rowsMin) * _progressThroughAllLevels);
-
-		// Update background effects
-		Environment.instance.flowerOfLife.SetMaxActiveMaterials(Mathf.FloorToInt(level));
-		Environment.instance.groundController.SetScrollSpeed(_progressThroughAllLevels);
 
 		// Menu selection: always recreate tower with new set of blocks
 		if (_resetTower)
@@ -609,9 +313,6 @@ public partial class Tower : MonoBehaviour
 				oldBlocks.Clear();
 			}
 		}
-
-		// Update score multiplier
-		scoreDifficultyMult = _progressThroughAllLevels;
 	}
 
 	#region Movement
@@ -763,9 +464,7 @@ public partial class Tower : MonoBehaviour
 				{
 					block.gameObj.transform.localScale = new Vector3(blockScale, blockScale, blockScale);
 					if (GetBlock(block.col, block.row - 1) == null)
-					{
 						ShiftBlockDown(block);
-					}
 					else if (GetBlock(block.col, block.row - 1).blockID == block.blockID)
 					{
 						// Special case: landed on a matching block
@@ -773,45 +472,40 @@ public partial class Tower : MonoBehaviour
 						ClearBlock(GetBlock(block.col, block.row - 1), true);
 					}
 					else
-					{
-						GameOver();
-					}
+						GameMaster.instance.GameOver();
 				}
 			}
 
-//			if (!IsGameFrozen())
+			// Reset timer
+			newBlockTimer = newBlockAppearRate;
+
+			// Create next batch of blocks
+			int firstBlockIdxToCreate = GameMaster.randomGen.Next() % columns;
+			int numBlocksToCreate = GameMaster.randomGen.Next() % columns;
+			int prevBlockIdx = -1;
+			for (int col = firstBlockIdxToCreate; col < firstBlockIdxToCreate + numBlocksToCreate; ++col)
 			{
-				// Reset timer
-				newBlockTimer = newBlockAppearRate;
-				
-				// Create next batch of blocks
-				int firstBlockIdxToCreate = randomGen.Next() % columns;
-				int numBlocksToCreate = randomGen.Next() % columns;
-				int prevBlockIdx = -1;
-				for (int col = firstBlockIdxToCreate; col < firstBlockIdxToCreate + numBlocksToCreate; ++col)
+				int wrappedCol = WrapCol(col);
+				int blockIdx = GameMaster.randomGen.Next() % currentBlockTypes;
+
+				// Avoid matching the block it's falling onto
+				Block topMostBlock = FindTopmostBlock(wrappedCol);
+				if ((topMostBlock != null) && (blockIdx == topMostBlock.blockID))
 				{
-					int wrappedCol = WrapCol(col);
-					int blockIdx = randomGen.Next() % currentBlockTypes;
-
-					// Avoid matching the block it's falling onto
-					Block topMostBlock = FindTopmostBlock(wrappedCol);
-					if ((topMostBlock != null) && (blockIdx == topMostBlock.blockID))
-					{
-						blockIdx = (blockIdx + 1) % currentBlockTypes;
-						// Debug.Log("Changed col "+wrappedCol+"'s blockID from "+gBlockPrefabsSolid[topMostBlock.mBlockID]+" to "+gBlockPrefabsSolid[blockIdx]+" (matched topmost block)");
-					}
-					// Avoid 2 matching blocks next to each other
-					else if (blockIdx == prevBlockIdx)
-					{
-						blockIdx = (blockIdx + 1) % currentBlockTypes;
-						// Debug.Log("Changed col "+wrappedCol+"'s blockID from "+gBlockPrefabsSolid[prevBlockIdx]+" to "+gBlockPrefabsSolid[blockIdx]+" (matched block next to it)");
-					}
-
-					// Create block
-					blocks[BlockIdx(wrappedCol, rows)] = GetNewBlock(blockIdx, wrappedCol, rows);
-					
-					prevBlockIdx = blockIdx;
+					blockIdx = (blockIdx + 1) % currentBlockTypes;
+					// Debug.Log("Changed col "+wrappedCol+"'s blockID from "+gBlockPrefabsSolid[topMostBlock.mBlockID]+" to "+gBlockPrefabsSolid[blockIdx]+" (matched topmost block)");
 				}
+				// Avoid 2 matching blocks next to each other
+				else if (blockIdx == prevBlockIdx)
+				{
+					blockIdx = (blockIdx + 1) % currentBlockTypes;
+					// Debug.Log("Changed col "+wrappedCol+"'s blockID from "+gBlockPrefabsSolid[prevBlockIdx]+" to "+gBlockPrefabsSolid[blockIdx]+" (matched block next to it)");
+				}
+
+				// Create block
+				blocks[BlockIdx(wrappedCol, rows)] = GetNewBlock(blockIdx, wrappedCol, rows);
+
+				prevBlockIdx = blockIdx;
 			}
 		}
 		
@@ -866,7 +560,8 @@ public partial class Tower : MonoBehaviour
 
 	/// <summary> Updates the falling & disappearing blocks </summary>
 	/// <param name='_dTime'> Time elapsed since last Update() </param>
-	void UpdateBlocks(float _dTime)
+	/// <returns> Score chain earned this frame </returns>
+	int UpdateBlocks(float _dTime)
 	{
 		blocksToDelete.Clear();
 
@@ -976,10 +671,6 @@ public partial class Tower : MonoBehaviour
 				GameObject drop = Instantiate(fallingRingPrefab, blockTrans.position, blockTrans.rotation);
 				drop.transform.localScale = new Vector3(blockScale * 0.275f, blockScale * 0.275f, blockScale * 0.275f);
 				drop.GetComponent<Renderer>().material.color = new Color(blockColor.r * 0.5f, blockColor.g * 0.5f, blockColor.b * 0.5f);
-				
-				// Add to the player's progress bar
-				if (gameMode != GameModes.ScoreChallenge)
-					++playerBarValue;
 			}
 
 			// Add background pulse
@@ -1010,14 +701,9 @@ public partial class Tower : MonoBehaviour
 					PlayBlockAudio(scorePopupPos, blockDisappearAudio[3], true);
 					break;
 			}
-
-			// Give extra score for harder difficulty
-			int scoreThisFrame = 1 << scoreChain;
-			scoreThisFrame += Convert.ToInt32(Convert.ToSingle(scoreThisFrame) * scoreDifficultyMult);
-			scoreThisFrame += Convert.ToInt32(level * 3.0f / Convert.ToSingle(levelMax - levelMin));
-			scoreThisFrame *= 10;
-			SetScore(score + scoreThisFrame);
 		}
+
+		return scoreChain;
 	}
 	
 	#endregion	// Block logic

@@ -1,69 +1,63 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 public class RippleGrowAndFade : MonoBehaviour
 {
-	// Public variables
-	public float						gFadeTime = 1.0f;								// How long it takes to disappear, in seconds
-	public float						gGrowAmount = 5.0f;								// How much it grows while disappearing
-	public bool							gDisableDontDestroy = false;					// WHen it's finished, SetActive(false) rather than GameObject.Destroy
-	
-	// Private variables
-	private float						gFadeAmount;									// Fade counter
-	private static Stack<GameObject>	gRecycleStack = new Stack<GameObject>();		// Stack of GameObjects ready for reuse
+	#region Inspector variables
 
+	[SerializeField] float	lifetime = 2.0f;
+	[SerializeField] float	growScale = 5.0f;
+
+	#endregion	// Inspector variables
+
+	float fadeAmount;
+	static Stack<GameObject> recycleStack = new Stack<GameObject>();
 
 	/// <summary> Creates (or reuses) a shockwave GameObject </summary>
-	/// <param name="position"> Centre position </param>
-	/// <param name="color"> Ripple's colour </param>
-	public static void StartRipple(Vector3 position, Color color)
+	/// <param name="_position"> Centre position </param>
+	/// <param name="_color"> Ripple's colour </param>
+	public static void StartRipple(GameObject _prefab, Vector3 _position, Color _color)
 	{
-		GameObject gameObj = (gRecycleStack.Count > 0) ? gRecycleStack.Pop() : (GameObject.Instantiate(Tower.instance.rippleRingPrefab) as GameObject);
+		GameObject gameObj = (recycleStack.Count > 0) ? recycleStack.Pop() : Instantiate(_prefab);
 
 		// Set position & rotation
 		gameObj.transform.parent = null;
-		gameObj.transform.position = position;
+		gameObj.transform.position = _position;
 		gameObj.transform.localScale = Vector3.zero;
-		gameObj.GetComponent<Renderer>().material.color = color;
+		gameObj.GetComponent<Renderer>().material.color = _color;
 
 		// (Re)start popup animation
-		gameObj.GetComponent<RippleGrowAndFade>().Reset();
+		RippleGrowAndFade shockwaveScript = gameObj.GetComponent<RippleGrowAndFade>();
+		shockwaveScript.Reset();
+
+		Environment.instance.shockwaves.Add(shockwaveScript);
 	}
-	
 
 	/// <summary> Restarts the animation </summary>
 	void Reset()
 	{
-		gFadeAmount = 1.0f;
+		fadeAmount = 1.0f;
 	}
 
-
-	/// <summary> Called once per frame </summary>
-	void Update()
+	/// <summary> Called from Environment's Update() </summary>
+	public void UpdateRipple(float _dTime)
 	{
-		gFadeAmount -= Time.deltaTime / gFadeTime;
-		if (gFadeAmount <= 0.0f)
+		fadeAmount -= _dTime / lifetime;
+		if (fadeAmount <= 0.0f)
 		{
-			if (gDisableDontDestroy)
-			{
-				gameObject.SetActive(false);
-			}
-			else
-			{
-				transform.parent = null;//Tower.gInstance.gDisabledGameObjectPool;
-				gRecycleStack.Push(gameObject);
-			}
+			transform.parent = GameMaster.instance.recycledObjectPool;
+			Environment.instance.shockwaves.Remove(this);
+			recycleStack.Push(gameObject);
 		}
 		else
 		{
 			// Grow
-			float scale = (1.0f - gFadeAmount) * gGrowAmount;
+			float scale = (1.0f - fadeAmount) * growScale;
 			transform.localScale = new Vector3(scale, scale, scale);
 			
 			// Fade
 			Color newColor = GetComponent<Renderer>().material.color;
-			newColor.a = gFadeAmount;
+			newColor.a = fadeAmount;
 			GetComponent<Renderer>().material.color = newColor;
 		}
 	}	

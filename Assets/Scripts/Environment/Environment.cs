@@ -28,7 +28,9 @@ public class Environment : MonoBehaviour
 	[SerializeField] AudioClip levelCompleteAudio = null;
 	[SerializeField] AudioClip gameOverAudio = null;
 
-	#endregion	// Inspector variables
+	#endregion  // Inspector variables
+
+	public List<RippleGrowAndFade> shockwaves = new List<RippleGrowAndFade>();
 
 	/// <summary> Singleton instance </summary>
 	public static Environment instance;
@@ -39,6 +41,15 @@ public class Environment : MonoBehaviour
 		if (instance != null)
 			throw new UnityException("Singleton instance already exists");
 		instance = this;
+	}
+
+	/// <summary> Called once per frame </summary>
+	void Update()
+	{
+		float dTime = Time.deltaTime;
+
+		for (int i = 0; i < shockwaves.Count; ++i)
+			shockwaves[i].UpdateRipple(dTime);
 	}
 
 	/// <summary> Changes the background to match the level </summary>
@@ -82,6 +93,16 @@ public class Environment : MonoBehaviour
 		return levelGroup;
 	}
 
+	/// <summary> Updates the background colour, texture etc. </summary>
+	/// <param name="_changeMusic"> When true, change background music as necessary </param>
+	public void UpdateBackground(float _level, float _levelMax, bool _changeMusic)
+	{
+		int musicIdx = SetBackground(_level, _levelMax);
+		if (_changeMusic)
+			musicController.StartGameMusic(musicIdx);
+
+	}
+
 	public void GameOver()
 	{
 		musicController.StopGameMusic();
@@ -105,5 +126,11 @@ public class Environment : MonoBehaviour
 	public void LevelUp()
 	{
 		audioSource.PlayOneShot(levelUpAudio);
+	}
+
+	public void PauseAllShockwaves(bool _paused)
+	{
+		for (int i = 0; i < shockwaves.Count; ++i)
+			shockwaves[i].enabled = _paused;
 	}
 }
