@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 
-public class RippleGrowAndFade : MonoBehaviour
+public class Shockwave : MonoBehaviour
 {
 	#region Inspector variables
 
@@ -11,14 +10,13 @@ public class RippleGrowAndFade : MonoBehaviour
 	#endregion	// Inspector variables
 
 	float fadeAmount;
-	static Stack<GameObject> recycleStack = new Stack<GameObject>();
 
 	/// <summary> Creates (or reuses) a shockwave GameObject </summary>
 	/// <param name="_position"> Centre position </param>
 	/// <param name="_color"> Ripple's colour </param>
 	public static void StartRipple(GameObject _prefab, Vector3 _position, Color _color)
 	{
-		GameObject gameObj = (recycleStack.Count > 0) ? recycleStack.Pop() : Instantiate(_prefab);
+		GameObject gameObj = RecyclePool.RetrieveOrCreate(RecyclePool.PoolTypes.Shockwave, _prefab);
 
 		// Set position & rotation
 		gameObj.transform.parent = null;
@@ -27,7 +25,7 @@ public class RippleGrowAndFade : MonoBehaviour
 		gameObj.GetComponent<Renderer>().material.color = _color;
 
 		// (Re)start popup animation
-		RippleGrowAndFade shockwaveScript = gameObj.GetComponent<RippleGrowAndFade>();
+		Shockwave shockwaveScript = gameObj.GetComponent<Shockwave>();
 		shockwaveScript.Reset();
 
 		Environment.instance.shockwaves.Add(shockwaveScript);
@@ -45,9 +43,8 @@ public class RippleGrowAndFade : MonoBehaviour
 		fadeAmount -= _dTime / lifetime;
 		if (fadeAmount <= 0.0f)
 		{
-			transform.parent = GameMaster.instance.recycledObjectPool;
 			Environment.instance.shockwaves.Remove(this);
-			recycleStack.Push(gameObject);
+			RecyclePool.Recycle(RecyclePool.PoolTypes.Shockwave, gameObject);
 		}
 		else
 		{

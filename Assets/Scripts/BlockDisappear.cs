@@ -1,24 +1,21 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System;
-using System.Collections.Generic;
 
 public class BlockDisappear : MonoBehaviour
 {
-	// Public variables
-	public float						gFadeTime = 0.25f;								// How long it takes to disappear, in seconds
+	#region Inspector variables
 
-	// Private variables
-	private Color						gColor;											// Fading colour
-	private Material					gMaterial;										// Cached material
-	private static Stack<GameObject>	gRecycleStack = new Stack<GameObject>();        // Stack of GameObjects ready for reuse
+	public float fadeTime = 0.25f;
 
+	#endregion    // Inspector variables
+
+	Color color;
+	Material material;
 
 	/// <summary> Creates (or reuses) a disappearing block GameObject </summary>
 	/// <param name="_block"> Block from which to create </param>
 	public static void StartDisappearing(Tower.Block _block, GameObject _disappearPrefab)
 	{
-		GameObject gameObj = (gRecycleStack.Count > 0) ? gRecycleStack.Pop() : Instantiate(_disappearPrefab);
+		GameObject gameObj = RecyclePool.RetrieveOrCreate(RecyclePool.PoolTypes.BlockDisappear, _disappearPrefab);
 
 		// Match pos/rot/scale of original block
 		Transform trans = gameObj.transform;
@@ -32,33 +29,25 @@ public class BlockDisappear : MonoBehaviour
 		gameObj.GetComponent<BlockDisappear>().ResetAnim();
 	}
 	
-	
-	/// <summary> Called when object/script activates </summary>
-	void Awake()
-	{
-		gMaterial = GetComponent<Renderer>().material;
-	}
-
-
 	/// <summary> Resets the disappear animation </summary>
 	void ResetAnim()
 	{
-		gColor = Color.white;
+		color = Color.white;
 	}
 
+	/// <summary> Called when object/script activates </summary>
+	void Awake()
+	{
+		material = GetComponent<Renderer>().material;
+	}
 
 	/// <summary> Called once per frame </summary>
 	void Update()
 	{
-		gColor.a -= Time.deltaTime / gFadeTime;
-		if (gColor.a <= 0.0f)
-		{
-			transform.parent = null;//Tower.gInstance.gDisabledGameObjectPool;
-			gRecycleStack.Push(gameObject);
-		}
+		color.a -= Time.deltaTime / fadeTime;
+		if (color.a <= 0.0f)
+			RecyclePool.Recycle(RecyclePool.PoolTypes.BlockDisappear, gameObject);
 		else
-		{
-			gMaterial.color = gColor;
-		}
+			material.color = color;
 	}	
 }

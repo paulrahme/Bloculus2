@@ -15,7 +15,6 @@ public class GameMaster : MonoBehaviour
 	[SerializeField] float levelIncreaseRateArcade = 0.02333f;
 	[SerializeField] int levelMin = 1;
 	[SerializeField] int levelMax = 33;
-	public Transform recycledObjectPool = null;
 
 	#endregion	// Inspector variables
 

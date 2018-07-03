@@ -1,11 +1,6 @@
 using UnityEngine;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 
-
-public class Helpers : MonoBehaviour
+public class Helpers
 {
 	public static readonly Vector3 vec3Zero = new Vector3(0f, 0f, 0f);		// Cached properly because Vector3.zero isn't
 	public static readonly Vector3 vec3One = new Vector3(1f, 1f, 1f);		// Cached properly because Vector3.one isn't
@@ -93,5 +88,15 @@ public class Helpers : MonoBehaviour
 		while (angle >= 360.0f) { angle -= 360.0f; }
 		while (angle < 0.0f) { angle += 360.0f; }
 		return angle;
+	}
+
+	/// <summary> Sets a transform's parent and resets its local position, rotation and scale </summary>
+	/// <param name="_trans"> Transform to set </param>
+	/// <param name="_parent"> Parent transform </param>
+	public static void ParentAndResetTransform(Transform _trans, Transform _parent)
+	{
+		_trans.parent = _parent;
+		_trans.localPosition = _trans.localEulerAngles = vec3Zero;
+		_trans.localScale = vec3One;
 	}
 }

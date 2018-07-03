@@ -41,7 +41,7 @@ public class FallAndDisappear : MonoBehaviour
 				// Add ripple & create pulse
 				GroundController.Instance.AddRipple(myTrans.position.x);
 				Vector3 ripplePos = new Vector3(myTrans.position.x, GroundController.Instance.transform.position.y, _parentTower.transform.position.z);
-				RippleGrowAndFade.StartRipple(_parentTower.rippleRingPrefab, ripplePos, myMaterial.color);
+				Shockwave.StartRipple(_parentTower.rippleRingPrefab, ripplePos, myMaterial.color);
 			}
 
 			// Disappear

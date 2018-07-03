@@ -30,7 +30,7 @@ public class Environment : MonoBehaviour
 
 	#endregion  // Inspector variables
 
-	public List<RippleGrowAndFade> shockwaves = new List<RippleGrowAndFade>();
+	public List<Shockwave> shockwaves = new List<Shockwave>();
 
 	/// <summary> Singleton instance </summary>
 	public static Environment instance;
