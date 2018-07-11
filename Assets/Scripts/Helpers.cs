@@ -83,10 +83,12 @@ public class Helpers
 	
  	/// <summary> Sets the target rotation, wrapping to the [0..360) range </summary>
 	/// <param name='angle'> Rotation in degrees </param>
-	public static float ClampAngle(float angle)
+	public static float WrapAngle(float angle)
 	{
-		while (angle >= 360.0f) { angle -= 360.0f; }
-		while (angle < 0.0f) { angle += 360.0f; }
+		while (angle > 360.0f)
+			angle -= 360.0f;
+		while (angle < 0.0f)
+			angle += 360.0f;
 		return angle;
 	}
 

@@ -50,9 +50,6 @@ public class GameMaster : MonoBehaviour
 		SetGameMode(GameModes.Original);
 		SetNewLevel(0.0f, true);
 
-		for (int i = 0; i < towers.Length; ++i)
-			towers[i].ResetTower();
-
 		ResetScore();
 	}
 
@@ -121,7 +118,6 @@ public class GameMaster : MonoBehaviour
 
 		towers = new Tower[1];
 		towers[0] = Instantiate(towerPrefab).GetComponent<Tower>();
-		towers[0].ResetTower();
 
 		switch (gameMode)
 		{

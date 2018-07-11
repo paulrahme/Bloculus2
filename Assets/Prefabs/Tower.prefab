@@ -915,8 +915,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32d6bf5031f8fe7408ef47e2dc74db29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectorLeft: {fileID: 1673943313502956}
-  selectorRight: {fileID: 1389732464536704}
+  selectorLeft: {fileID: 4046587594999326}
+  selectorRight: {fileID: 4518471076027588}
   audioSourceXposZpos: {fileID: 82836748197482254}
   audioSourceXnegZpos: {fileID: 82857210634352206}
   audioSourceXposZneg: {fileID: 82636840102342524}
@@ -992,13 +992,8 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 2d9f7a7a2efe44385805306f45724989, type: 3}
   towerRadius: 4
   minCameraDistance: 6
-  levelMin: 1
-  levelMax: 33
   fallSpeedSlowest: 2
   fallSpeedFastest: 7
-  levelIncreaseRateFull: 0.00666
-  levelIncreaseRateShorter: 0.01666
-  levelIncreaseRateArcade: 0.02333
   newBlockAppearRateSlowest: 4.5
   newBlockAppearRateFastest: 2
   columnsMin: 10
@@ -1006,7 +1001,4 @@ MonoBehaviour:
   rowsMin: 5
   rowsMax: 16
   blockTypesMin: 4
-  ringFillCapacityMin: 45
-  ringFilleCapacityMax: 150
   selectorSwapAnimSpeed: 9
-  gameMode: 0

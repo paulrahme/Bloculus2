@@ -7,8 +7,8 @@ public partial class Tower : MonoBehaviour
 	#region Inspector variables
 
 	[Header("Hierarchy")]
-	[SerializeField] GameObject			selectorLeft = null;
-	[SerializeField] GameObject			selectorRight = null;
+	[SerializeField] Transform			selectorLeft = null;
+	[SerializeField] Transform			selectorRight = null;
 	[SerializeField] AudioSource		audioSourceXposZpos = null;
 	[SerializeField] AudioSource		audioSourceXnegZpos = null;
 	[SerializeField] AudioSource		audioSourceXposZneg = null;
@@ -27,6 +27,8 @@ public partial class Tower : MonoBehaviour
 
 	[Header("Gameplay Tuning & Balancing")]
 	[SerializeField] float				towerRadius = 4.0f;
+	[SerializeField] float				rotateSpeed = 10.0f;
+	[SerializeField] float				minDistanceFromCamera = 3.0f;
 	[SerializeField] float				minCameraDistance = 6.0f;
 	[SerializeField] float				fallSpeedSlowest = 2.0f;
 	[SerializeField] float				fallSpeedFastest = 7.0f;
@@ -41,10 +43,12 @@ public partial class Tower : MonoBehaviour
 
 	#endregion	// Inspector variables
 
+	Transform myTrans;
 	internal int columns = 12;
 	internal int rows = 10;
 	int currentBlockTypes = 6;
 	float blockScale;
+	float halfSelectorAngle;
 	int blockStyle;
 	Stack<Block>[] blockPool;	// Array of stacks per block type
 	Block[] blocks;
@@ -57,6 +61,7 @@ public partial class Tower : MonoBehaviour
 	AudioSource selectorAudioSource;
 	List<int> blocksToDelete = new List<int>();
 	List<FallAndDisappear> fallingRings = new List<FallAndDisappear>();
+	Vector3 localEulerAngles, targetEulerAngles;
 
 	// Quick helper functions
 	int		BlockIdx(int _col, int _row) { return (_row * columns) + _col; }
@@ -120,14 +125,9 @@ public partial class Tower : MonoBehaviour
 		blockStyle = PlayerPrefs.GetInt(Constants.ppBlockStyle, 1);
 
 		PrepareObjectPools();
-	}
 
-	public void ResetTower()
-	{
-		ClearBlocks(true);
-		DeleteTemporaryObjects();
-		RefreshTower(false);
-		RestoreSpeeds();
+		myTrans = transform;
+		localEulerAngles = targetEulerAngles = myTrans.localEulerAngles;
 	}
 
 	/// <summary> Creates & prepares the stacks for recycling objects </summary>
@@ -152,8 +152,12 @@ public partial class Tower : MonoBehaviour
 	/// <param name='_createRandomBlocks'> When true, creates a new bunch of random blocks </param>
 	public void RefreshTower(bool _createRandomBlocks)
 	{
+		// Set distance away from the camera
+		transform.localPosition = new Vector3(0.0f, 0.0f, minDistanceFromCamera + columns);
+		
 		// Calculate scale for block transforms
 		blockScale = towerRadius * 6.0f / columns;
+		halfSelectorAngle = 360.0f / (float)columns * 0.5f;
 		
 		// Set up starting blocks
 		blocks = new Block[columns * (rows + 1)];	// 1 extra row for block generators
@@ -165,7 +169,7 @@ public partial class Tower : MonoBehaviour
 		// Initialise selector boxes
 		if (_createRandomBlocks)
 			SetSelectorPos(columns - 1, 2);
-		selectorLeft.transform.localScale = selectorRight.transform.localScale = new Vector3(blockScale, blockScale, blockScale);
+		selectorLeft.localScale = selectorRight.localScale = new Vector3(blockScale, blockScale, blockScale);
 	}		
 
 	/// <summary> Starts the disappear anim & recycles the block </summary>
@@ -179,20 +183,21 @@ public partial class Tower : MonoBehaviour
 		blocks[BlockIdx(_block.col, _block.row)] = null;
 		RecycleBlock(_block);
 	}
-	
+
 	/// <summary> Clears all blocks from the tower </summary>
 	/// <param name="_disappearAnim"> When true, play the disappearing animation </param>
 	public void ClearBlocks(bool _disappearAnim)
 	{
-		if (blocks == null) { return; }
+		if (blocks == null)
+			return;
 
-		for (int row = 0; row <= rows; ++row)	// Note rows + 1, for new block generators
+		for (int row = 0; row <= rows; ++row)   // Note rows + 1, for new block generators
 		{
 			for (int col = 0; col < columns; ++col)
 			{
 				Block block = GetBlock(col, row);
 				if (block != null)
-					ClearBlock (block, _disappearAnim);
+					ClearBlock(block, _disappearAnim);
 			}
 		}
 	}
@@ -253,6 +258,7 @@ public partial class Tower : MonoBehaviour
 		UpdateSelectorSwapAnim(_dTime);
 		UpdateNewBlocks(_dTime);
 		_scoreChainThisFrame = UpdateBlocks(_dTime);
+		UpdateRotation(_dTime);
 
 		// Update all falling rings
 		for (int i = 0; i < fallingRings.Count; ++i)
@@ -262,7 +268,7 @@ public partial class Tower : MonoBehaviour
 	/// <summary> Restarts with the previous settings </summary>
 	public void ReplayGame()
 	{
-		ClearBlocks(true);
+		ClearBlocks(false);
 		DeleteTemporaryObjects();
 		RestoreSpeeds();
 		CreateRandomBlocks();
@@ -286,7 +292,7 @@ public partial class Tower : MonoBehaviour
 		// Menu selection: always recreate tower with new set of blocks
 		if (_resetTower)
 		{
-			ClearBlocks(true);
+			ClearBlocks(false);
 			columns = newColumns;
 			rows = newRows;
 			RefreshTower(true);
@@ -313,6 +319,19 @@ public partial class Tower : MonoBehaviour
 				oldBlocks.Clear();
 			}
 		}
+	}
+
+	/// <summary> Updates the tower rotating so that the selectors are in front of the camera </summary>
+	/// <param name="_dTime"> Time passed since the last Update() </param>
+	void UpdateRotation(float _dTime)
+	{
+		targetEulerAngles.y = 180.0f - (selectorLeft.localEulerAngles.y + halfSelectorAngle);
+		while (targetEulerAngles.y > localEulerAngles.y + 180.0f)
+			targetEulerAngles.y -= 360.0f;
+		while (targetEulerAngles.y < localEulerAngles.y - 180.0f)
+			targetEulerAngles.y += 360.0f;
+		localEulerAngles += (targetEulerAngles - localEulerAngles) * rotateSpeed * _dTime;
+		myTrans.localEulerAngles = localEulerAngles;
 	}
 
 	#region Movement
@@ -728,11 +747,11 @@ public partial class Tower : MonoBehaviour
 		selectorLeftCol = _colLeft;
 		selectorRow = _row;
 
-		selectorLeft.transform.localEulerAngles = new Vector3(0.0f, Block.CalcAngleDeg(_colLeft, columns), 0.0f);
-		selectorLeft.transform.localPosition = Block.CalcPosition(WrapCol(_colLeft), _row, selectorLeft.transform.localEulerAngles.y, towerRadius, blockScale);
+		selectorLeft.localEulerAngles = new Vector3(0.0f, Block.CalcAngleDeg(_colLeft, columns), 0.0f);
+		selectorLeft.localPosition = Block.CalcPosition(WrapCol(_colLeft), _row, selectorLeft.localEulerAngles.y, towerRadius, blockScale);
 
 		selectorRight.transform.localEulerAngles = new Vector3(0.0f, Block.CalcAngleDeg(WrapCol(_colLeft + 1), columns), 0.0f);
-		selectorRight.transform.localPosition = Block.CalcPosition(WrapCol(_colLeft + 1), _row, selectorRight.transform.localEulerAngles.y, towerRadius, blockScale);
+		selectorRight.transform.localPosition = Block.CalcPosition(WrapCol(_colLeft + 1), _row, selectorRight.localEulerAngles.y, towerRadius, blockScale);
 	}
 
 	/// <summary> Updates the selector's swapping animation </summary>
@@ -742,10 +761,10 @@ public partial class Tower : MonoBehaviour
 		selectorSwapAnimOffset -= selectorSwapAnimSpeed * _dTime;
 		if (selectorSwapAnimOffset < 0.0f) { selectorSwapAnimOffset = 0.0f; }
 	
-		Vector3 leftPos = Block.CalcPosition(WrapCol(selectorLeftCol), selectorRow, selectorLeft.transform.localEulerAngles.y, towerRadius, blockScale);
-		Vector3 rightPos = Block.CalcPosition(WrapCol(selectorLeftCol + 1), selectorRow, selectorRight.transform.localEulerAngles.y, towerRadius, blockScale);
+		Vector3 leftPos = Block.CalcPosition(WrapCol(selectorLeftCol), selectorRow, selectorLeft.localEulerAngles.y, towerRadius, blockScale);
+		Vector3 rightPos = Block.CalcPosition(WrapCol(selectorLeftCol + 1), selectorRow, selectorRight.localEulerAngles.y, towerRadius, blockScale);
 
-		selectorRight.transform.localPosition = new Vector3(Mathf.Lerp(rightPos.x, leftPos.x, selectorSwapAnimOffset), rightPos.y, Mathf.Lerp(rightPos.z, leftPos.z, selectorSwapAnimOffset));
-		selectorLeft.transform.localPosition = new Vector3(Mathf.Lerp(leftPos.x, rightPos.x, selectorSwapAnimOffset), leftPos.y, Mathf.Lerp(leftPos.z, rightPos.z, selectorSwapAnimOffset));
+		selectorRight.localPosition = new Vector3(Mathf.Lerp(rightPos.x, leftPos.x, selectorSwapAnimOffset), rightPos.y, Mathf.Lerp(rightPos.z, leftPos.z, selectorSwapAnimOffset));
+		selectorLeft.localPosition = new Vector3(Mathf.Lerp(leftPos.x, rightPos.x, selectorSwapAnimOffset), leftPos.y, Mathf.Lerp(leftPos.z, rightPos.z, selectorSwapAnimOffset));
 	}
 }

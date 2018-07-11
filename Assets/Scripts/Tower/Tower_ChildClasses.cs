@@ -115,12 +115,15 @@ public partial class Tower : MonoBehaviour
 	{
 		List<SavedBlockInfo> blockInfoList = new List<SavedBlockInfo>();
 		blockInfoList.Clear();
-		for (int i = 0; i < blocks.Length; ++i)
+		if (blocks != null)
 		{
-			if (blocks[i] != null)
+			for (int i = 0; i < blocks.Length; ++i)
 			{
-				Block block = blocks[i];
-				blockInfoList.Add(new SavedBlockInfo(block.col, block.row, block.blockID, block.fallingOffset));
+				if (blocks[i] != null)
+				{
+					Block block = blocks[i];
+					blockInfoList.Add(new SavedBlockInfo(block.col, block.row, block.blockID, block.fallingOffset));
+				}
 			}
 		}
 		
