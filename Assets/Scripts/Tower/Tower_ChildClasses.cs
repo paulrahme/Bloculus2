@@ -43,10 +43,12 @@ public partial class Tower : MonoBehaviour
 			blockID = _blockID;
 			col = _col;
 			row = _row;
-			gameObj.transform.parent = _towerTransform;
-			gameObj.transform.localEulerAngles = new Vector3(0.0f, angleDeg, 0.0f);
-			gameObj.transform.localPosition = CalcPosition(_col, _row, angleDeg, _radius, _scale);
-			gameObj.transform.localScale = new Vector3(_scale, _scale, _scale);
+			Transform trans = gameObj.transform;
+			trans.parent = _towerTransform;
+			trans.localEulerAngles = new Vector3(0.0f, angleDeg, 0.0f);
+			trans.localPosition = CalcPosition(_col, _row, angleDeg, _radius, _scale);
+			trans.localScale = new Vector3(_scale, _scale, _scale);
+			gameObj.SetActive(true);
 		}
 
 		/// <summary> Calculates the position of a block. </summary>

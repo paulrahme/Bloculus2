@@ -278,6 +278,5 @@ public class GameMaster : MonoBehaviour
 		// Update background effects
 		Environment.instance.flowerOfLife.SetMaxActiveMaterials(Mathf.FloorToInt(level));
 		Environment.instance.groundController.SetScrollSpeed(_progressThroughAllLevels);
-
 	}
 }

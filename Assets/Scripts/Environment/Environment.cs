@@ -13,7 +13,7 @@ public class Environment : MonoBehaviour
 
 	#region Inspector variables
 
-	[Header("Hieracchy")]
+	[Header("Hierachy")]
 	public GroundController groundController = null;
 	public FlowerOfLife flowerOfLife = null;
 	public MusicController musicController = null;

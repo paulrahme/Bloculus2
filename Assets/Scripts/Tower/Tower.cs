@@ -17,6 +17,7 @@ public partial class Tower : MonoBehaviour
 	[Header("Prefabs")]
 	[SerializeField] BlockDefinition[]	blockDefs = null;
 	[SerializeField] GameObject			fallingRingPrefab = null;
+	[SerializeField] float				fallingRingScaleMult = 0.275f;
 	public GameObject					rippleRingPrefab = null;
 	public GameObject					blockDisappearPrefab = null;
 
@@ -50,7 +51,7 @@ public partial class Tower : MonoBehaviour
 	float blockScale;
 	float halfSelectorAngle;
 	int blockStyle;
-	Stack<Block>[] blockPool;	// Array of stacks per block type
+	Stack<Block>[] blockPools;	// Array of stacks per block type
 	Block[] blocks;
 	int selectorLeftCol, selectorRow;
 	float newBlockTimer;
@@ -60,7 +61,7 @@ public partial class Tower : MonoBehaviour
 	float selectorSwapAnimOffset;
 	AudioSource selectorAudioSource;
 	List<int> blocksToDelete = new List<int>();
-	List<FallAndDisappear> fallingRings = new List<FallAndDisappear>();
+	List<FallingRing> fallingRings = new List<FallingRing>();
 	Vector3 localEulerAngles, targetEulerAngles;
 
 	// Quick helper functions
@@ -78,7 +79,7 @@ public partial class Tower : MonoBehaviour
 	/// <returns> The new/recycled block </returns>
 	public Block GetNewBlock(int _blockID, int _col, int _row)
 	{
-		Stack<Block> thisBlocksStack = blockPool[_blockID];
+		Stack<Block> thisBlocksStack = blockPools[_blockID];
 
 		// Have a pooled one to recycle?
 		if (thisBlocksStack.Count > 0)
@@ -103,13 +104,13 @@ public partial class Tower : MonoBehaviour
 	/// <param name="block"> Block to add </param>
 	public void RecycleBlock(Block block)
 	{
-		blockPool[block.blockID].Push(block);
-		block.gameObj.transform.parent = null;//gDisabledGameObjectPool;
+		blockPools[block.blockID].Push(block);
+		block.gameObj.SetActive(false);
 	}
 
 	public void EmptyRecyclePool()
 	{
-		foreach (Stack<Block> blockStack in blockPool)
+		foreach (Stack<Block> blockStack in blockPools)
 		{
 			while (blockStack.Count > 0)
 				Destroy(blockStack.Pop().gameObj);
@@ -134,10 +135,10 @@ public partial class Tower : MonoBehaviour
 	void PrepareObjectPools()
 	{
 		int blockPoolSize = blockDefs.Length;
-		blockPool = new Stack<Block>[blockPoolSize];
+		blockPools = new Stack<Block>[blockPoolSize];
 		for (int i = 0; i < blockPoolSize; ++i)
 		{
-			blockPool[i] = new Stack<Block>();
+			blockPools[i] = new Stack<Block>();
 		}
 	}
 
@@ -212,6 +213,12 @@ public partial class Tower : MonoBehaviour
 		Environment.instance.PauseAllShockwaves(_paused);
 	}
 
+	public void RingFinishedFalling(FallingRing _ring)
+	{
+		RecyclePool.Recycle(RecyclePool.PoolTypes.FallingRing, _ring.gameObject);
+		fallingRings.Remove(_ring);
+	}
+
 	/// <summary> Sets up some random blocks in the tower </summary>
 	void CreateRandomBlocks()
 	{
@@ -262,7 +269,7 @@ public partial class Tower : MonoBehaviour
 
 		// Update all falling rings
 		for (int i = 0; i < fallingRings.Count; ++i)
-			fallingRings[i].UpdateFalling(this);
+			fallingRings[i].UpdateFalling(_dTime);
 	}
 	
 	/// <summary> Restarts with the previous settings </summary>
@@ -682,14 +689,13 @@ public partial class Tower : MonoBehaviour
 			Color blockColor = blockToDelete.GetMainColor();
 			ClearBlock(blockToDelete, true);
 			
-			// If it's a combo, add falling drop
+			// If it's a combo, add falling ring
 			if (scoreChain > 2)
 			{
 				// Add 3D object to fall out of the bottom of the tower
 				Transform blockTrans = blockToDelete.gameObj.transform;
-				GameObject drop = Instantiate(fallingRingPrefab, blockTrans.position, blockTrans.rotation);
-				drop.transform.localScale = new Vector3(blockScale * 0.275f, blockScale * 0.275f, blockScale * 0.275f);
-				drop.GetComponent<Renderer>().material.color = new Color(blockColor.r * 0.5f, blockColor.g * 0.5f, blockColor.b * 0.5f);
+				FallingRing fallScript = FallingRing.Spawn(this, fallingRingPrefab, blockTrans.position, blockScale * fallingRingScaleMult, blockColor);
+				fallingRings.Add(fallScript);
 			}
 
 			// Add background pulse
@@ -726,6 +732,7 @@ public partial class Tower : MonoBehaviour
 	}
 	
 	#endregion	// Block logic
+
 
 	/// <summary> Returns the number wrapped into the range [0..gColums) </summary>
 	/// <param name='_col'> Unwrapped column </param>
