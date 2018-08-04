@@ -63,6 +63,8 @@ public partial class Tower : MonoBehaviour
 	List<int> blocksToDelete = new List<int>();
 	List<FallingRing> fallingRings = new List<FallingRing>();
 	Vector3 localEulerAngles, targetEulerAngles;
+	internal TowerControl controller;
+	ControlData controlData = new ControlData();
 
 	// Quick helper functions
 	int		BlockIdx(int _col, int _row) { return (_row * columns) + _col; }
@@ -116,8 +118,8 @@ public partial class Tower : MonoBehaviour
 				Destroy(blockStack.Pop().gameObj);
 		}
 	}
-	
-	#endregion	// Block pool
+
+	#endregion // Block pool
 
 	/// <summary> Called when object/script initiates </summary>
 	void Awake()
@@ -258,10 +260,19 @@ public partial class Tower : MonoBehaviour
 	/// <summary> Called from GameMaster's Update() </summary>
 	public void UpdateTower(float _dTime, out int _scoreChainThisFrame)
 	{
-#if UNITY_STANDALONE
-		UpdateKeyboard();
-#endif
-		UpdateJoystick();
+		// Read & react to controls
+		controller.UpdateControls(_dTime, ref controlData);
+		if (controlData.horizontalDir == ControlData.HorizontalDirs.Left)
+			MoveLeft();
+		else if (controlData.horizontalDir == ControlData.HorizontalDirs.Right)
+			MoveRight();
+		if (controlData.verticalDir == ControlData.VerticalDirs.Up)
+			MoveUp();
+		else if (controlData.verticalDir == ControlData.VerticalDirs.Down)
+			MoveDown();
+		if (controlData.switchBlocks)
+			SwitchBlocks();
+
 		UpdateSelectorSwapAnim(_dTime);
 		UpdateNewBlocks(_dTime);
 		_scoreChainThisFrame = UpdateBlocks(_dTime);
@@ -415,60 +426,6 @@ public partial class Tower : MonoBehaviour
 		
 		// Start the selector's swap anim
 		selectorSwapAnimOffset = 1.0f;
-	}
-
-#if UNITY_STANDALONE
-	/// <summary> Updates keyboard controls </summary>
-	void UpdateKeyboard()
-	{
-		if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.A))
-			MoveLeft();
-		else if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.Keypad6) || Input.GetKeyDown(KeyCode.D))
-			MoveRight();
-		else if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.Keypad8) || Input.GetKeyDown(KeyCode.W))
-			MoveUp();
-		else if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.Keypad2) || Input.GetKeyDown(KeyCode.S))
-			MoveDown();
-		else if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
-			SwitchBlocks();
-	}
-#endif
-
-	/// <summary> Updates joystick / gamepad controls </summary>
-	void UpdateJoystick()
-	{
-		// Already pressing in a direction?
-		if (joystickDirectionHeld)
-		{
-			joystickDirectionHeld &= ((Input.GetAxis("Horizontal") > -0.1f) && (Input.GetAxis("Horizontal") < 0.1f) &&
-									  (Input.GetAxis("Vertical") > -0.1f) && (Input.GetAxis("Vertical") < 0.1f));
-		}
-		else
-		{
-			if (Input.GetAxis("Horizontal") < -0.1f)
-			{
-				joystickDirectionHeld = true;
-				MoveLeft();
-			}
-			else if (Input.GetAxis("Horizontal") > 0.1f)
-			{
-				joystickDirectionHeld = true;
-				MoveRight();
-			}
-			else if (Input.GetAxis("Vertical") < -0.1f)
-			{
-				joystickDirectionHeld = true;
-				MoveUp();
-			}
-			else if (Input.GetAxis("Vertical") > 0.1f)
-			{
-				joystickDirectionHeld = true;
-				MoveDown();
-			}
-		}
-
-		if (Input.GetButtonDown("Switch Blocks"))
-			SwitchBlocks();
 	}
 
 	#endregion	// Movement

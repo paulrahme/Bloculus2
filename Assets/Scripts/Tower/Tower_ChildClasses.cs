@@ -14,11 +14,11 @@ public partial class Tower : MonoBehaviour
 	/// <summary> Main class for a block in the 3D tower </summary>
 	public class Block
 	{
-		public GameObject gameObj;			// GameObject, or null if empty
-		public BlockDefinition blockDef;	// Block data
-		public int blockID;					// ID used for matching with other blocks
-		public int col, row;				// Which column + row (0 = bottom) it's in
-		public float fallingOffset;			// Amount to fall before resting in this position (1.0f = 1 r)
+		public GameObject gameObj;          // GameObject, or null if empty
+		public BlockDefinition blockDef;    // Block data
+		public int blockID;                 // ID used for matching with other blocks
+		public int col, row;                // Which column + row (0 = bottom) it's in
+		public float fallingOffset;         // Amount to fall before resting in this position (1.0f = 1 r)
 
 		/// <summary> Constructor </summary>
 		/// <param name='_gameObj'> GameObject to use </param>
@@ -128,7 +128,7 @@ public partial class Tower : MonoBehaviour
 				}
 			}
 		}
-		
+
 		return blockInfoList;
 	}
 
@@ -142,6 +142,20 @@ public partial class Tower : MonoBehaviour
 			GetBlock(info.col, info.row).fallingOffset = info.fallingOffset;
 		}
 	}
-	
-	#endregion	// Backing up + restoring blocks
+
+	#endregion // Backing up + restoring blocks
+
+	#region Controls
+
+	public class ControlData
+	{
+		public enum HorizontalDirs { None, Left, Right };
+		public enum VerticalDirs { None, Up, Down };
+
+		public HorizontalDirs horizontalDir = HorizontalDirs.None;
+		public VerticalDirs verticalDir = VerticalDirs.None;
+		public bool switchBlocks = false;
+	}
+
+	#endregion // Controls
 }

@@ -51,13 +51,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e1e5096a121f4875900e8228c74b212, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  towerPrefab: {fileID: 1285797702341336, guid: 06cf7361d2eea4b86849bb233b0573e2,
+  towerPrefab: {fileID: 114834958376120796, guid: 06cf7361d2eea4b86849bb233b0573e2,
     type: 2}
   ringFillCapacityMin: 45
   ringFilleCapacityMax: 150
-  levelIncreaseRateFull: 0.00666
-  levelIncreaseRateShorter: 0.01666
-  levelIncreaseRateArcade: 0.02333
   levelMin: 1
   levelMax: 33
-  recycledObjectPool: {fileID: 0}

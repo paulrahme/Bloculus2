@@ -3,22 +3,20 @@ using UnityEngine;
 
 public class GameMaster : MonoBehaviour
 {
-	public enum GameModes { Original, Arcade, TimeChallenge, SpeedChallenge, ScoreChallenge };
+	enum ControllerTypes { Keyboard, Gamepad, Touchscreen };
+	readonly ControllerTypes[] controllerTypes = { ControllerTypes.Keyboard, ControllerTypes.Gamepad };
 
 	#region Inspector variables
 
-	[SerializeField] GameObject towerPrefab = null;
+	[SerializeField] Tower towerPrefab = null;
 	[SerializeField] int ringFillCapacityMin = 45;
 	[SerializeField] int ringFilleCapacityMax = 150;
-	[SerializeField] float levelIncreaseRateFull = 0.00666f;
-	[SerializeField] float levelIncreaseRateShorter = 0.01666f;
-	[SerializeField] float levelIncreaseRateArcade = 0.02333f;
 	[SerializeField] int levelMin = 1;
 	[SerializeField] int levelMax = 33;
 
 	#endregion	// Inspector variables
 
-	internal GameModes gameMode;
+	GameMode gameMode;
 	Tower[] towers;
 	float level;
 	int levelInt;
@@ -47,7 +45,8 @@ public class GameMaster : MonoBehaviour
 	/// <summary> Called before first Update() </summary>
 	void Start()
 	{
-		SetGameMode(GameModes.Original);
+		gameMode = gameObject.AddComponent<GameModeOriginal>();
+		SetupGameMode();
 		SetNewLevel(0.0f, true);
 
 		ResetScore();
@@ -96,55 +95,35 @@ public class GameMaster : MonoBehaviour
 #endif
 	}
 
-#if UNITY_EDITOR
-	/// <summary> Handles debug key/s for saving screenshots </summary>
-	void HandleScreenshotKey()
-	{
-		// Save screenshot
-		if (Input.GetKeyDown(KeyCode.S) && Input.GetKey(KeyCode.LeftShift))
-		{
-			string fileName = "Screenshots/"+Screen.width+"x"+Screen.height+"_"+System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm_ss")+".png";
-			ScreenCapture.CaptureScreenshot(fileName);
-			Debug.Log("Saved screenshot '"+fileName+"'");
-		}
-	}
-#endif
-
 	/// <summary> Sets a new game mode & performs any appropriate actions </summary>
-	/// <param name='_gameMode'> eGameMode.... name </param>
-	public void SetGameMode(GameModes _gameMode)
+	public void SetupGameMode()
 	{
-		gameMode = _gameMode;
-
-		towers = new Tower[1];
-		towers[0] = Instantiate(towerPrefab).GetComponent<Tower>();
-
-		switch (gameMode)
+		towers = new Tower[gameMode.NumTowers];
+		for (int i = 0; i < towers.Length; ++i)
 		{
-			case GameModes.Original:
-				SetStartingLevel(PlayerPrefs.GetInt(Constants.ppkPPStartingLevel, 1));
-				levelIncreaseRate = levelIncreaseRateFull;
-				break;
+			Tower tower = Instantiate(towerPrefab);
 
-			case GameModes.Arcade:
-				SetStartingLevel(1);
-				levelIncreaseRate = levelIncreaseRateArcade;
-				break;
+			switch (controllerTypes[i])
+			{
+				case ControllerTypes.Keyboard:
+					TowerControlKeyboard controller = tower.gameObject.AddComponent<TowerControlKeyboard>();
+					tower.controller = controller;
+					controller.Init(KeyCode.LeftArrow, KeyCode.RightArrow, KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.Space);
+					break;
 
-			case GameModes.TimeChallenge:
-			case GameModes.SpeedChallenge:
-				SetStartingLevel(PlayerPrefs.GetInt(Constants.ppkPPStartingLevel, 1));
-				levelIncreaseRate = 0;
-				break;
+				case ControllerTypes.Gamepad:
+					tower.controller = tower.gameObject.AddComponent<TowerControlGamepad>();
+					break;
 
-			case GameModes.ScoreChallenge:
-				SetStartingLevel(PlayerPrefs.GetInt(Constants.ppkPPStartingLevel, 1));
-				levelIncreaseRate = levelIncreaseRateShorter;
-				break;
+				default:
+					throw new UnityException("Unhandled Controller Type " + controllerTypes[i]);
+			}
 
-			default:
-				throw new Exception("Unhandled GameMode '" + gameMode + "'");
+			towers[i] = tower;
 		}
+
+		SetStartingLevel(gameMode.AlwaysStartOnLevel1 ? 1 : PlayerPrefs.GetInt(Constants.ppkPPStartingLevel, 1));
+		levelIncreaseRate = gameMode.LevelIncreaseRate;
 	}
 
 	/// <summary> Sets the starting level and adjusts game speeds accordingly </summary>
@@ -167,30 +146,6 @@ public class GameMaster : MonoBehaviour
 		ResetPlayerBar();
 	}
 	
-	/// <summary> Triggered as soon as the frontend disappears and the game begins </summary>
-	public void GameHasBegun()
-	{
-		switch (gameMode)
-		{
-			case GameModes.Original:
-			case GameModes.Arcade:
-				break;
-				
-			case GameModes.TimeChallenge:
-			case GameModes.SpeedChallenge:
-//				timeChallengeStartTime = Time.fixedTime;
-				break;
-				
-			case GameModes.ScoreChallenge:
-//				timeChallengeStartTime = Time.fixedTime;
-				break;
-
-			default:
-				throw new Exception("Unhandled GameMode " + gameMode);
-		}
-		Environment.instance.UpdateBackground(level, levelMax, true);
-	}
-
 	/// <summary> Gets the current progress through all levels </summary>
 	/// <returns> Level progress between from 0 to 1 </returns>
 	public float GetProgressThroughLevels()
@@ -202,7 +157,7 @@ public class GameMaster : MonoBehaviour
 	void ReplayGame()
 	{
 		ResetScore();
-		GameHasBegun();
+		gameMode.GameHasBegun();
 		for (int i = 0; i < towers.Length; ++i)
 			towers[i].ReplayGame();
 	}
@@ -258,7 +213,7 @@ public class GameMaster : MonoBehaviour
 
 	
 		// Add to the player's progress bar
-		if (gameMode != GameModes.ScoreChallenge)
+		if (gameMode.HasRingBar)
 			++playerBarValue;
 	}
 
@@ -279,4 +234,18 @@ public class GameMaster : MonoBehaviour
 		Environment.instance.flowerOfLife.SetMaxActiveMaterials(Mathf.FloorToInt(level));
 		Environment.instance.groundController.SetScrollSpeed(_progressThroughAllLevels);
 	}
+
+#if UNITY_EDITOR
+	/// <summary> Handles debug key/s for saving screenshots </summary>
+	void HandleScreenshotKey()
+	{
+		// Save screenshot
+		if (Input.GetKeyDown(KeyCode.S) && Input.GetKey(KeyCode.LeftShift))
+		{
+			string fileName = "Screenshots/" + Screen.width + "x" + Screen.height + "_" + System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm_ss") + ".png";
+			ScreenCapture.CaptureScreenshot(fileName);
+			Debug.Log("Saved screenshot '" + fileName + "'");
+		}
+	}
+#endif
 }
