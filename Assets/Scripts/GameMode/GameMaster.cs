@@ -5,6 +5,7 @@ public class GameMaster : MonoBehaviour
 {
 	enum ControllerTypes { Keyboard, Gamepad, Touchscreen };
 	readonly ControllerTypes[] controllerTypes = { ControllerTypes.Keyboard, ControllerTypes.Gamepad };
+	enum GameStates { Menu, PreGame, Gameplay, Paused, GameOver };
 
 	#region Inspector variables
 
@@ -17,6 +18,7 @@ public class GameMaster : MonoBehaviour
 	#endregion	// Inspector variables
 
 	GameMode gameMode;
+	GameStates gameState;
 	Tower[] towers;
 	float level;
 	int levelInt;
@@ -45,11 +47,7 @@ public class GameMaster : MonoBehaviour
 	/// <summary> Called before first Update() </summary>
 	void Start()
 	{
-		gameMode = gameObject.AddComponent<GameModeOriginal>();
-		SetupGameMode();
-		SetNewLevel(0.0f, true);
-
-		ResetScore();
+		SetGameState(GameStates.Menu);
 	}
 
 	/// <summary> Called once per frame </summary>
@@ -57,14 +55,26 @@ public class GameMaster : MonoBehaviour
 	{
 		float dTime = Time.deltaTime;
 
-		UpdateLevelProgress(dTime);
+		switch (gameState)
+		{
+			case GameStates.Gameplay: UpdateGameplay(dTime); break;
+
+			default: break;
+		}
+	}
+
+	/// <summary> Called once per frame during this GameState </summary>
+	/// <param name='_dTime'> Time elapsed since last Update() </param>
+	void UpdateGameplay(float _dTime)
+	{
+		UpdateLevelProgress(_dTime);
 
 		// Update tower/s
 		int scoreChainThisFrame = 0;
 		for (int i = 0; i < towers.Length; ++i)
 		{
 			int scoreChainFromTower;
-			towers[i].UpdateTower(dTime, out scoreChainFromTower);
+			towers[i].UpdateTower(_dTime, out scoreChainFromTower);
 			scoreChainThisFrame += scoreChainFromTower;
 		}
 
@@ -95,9 +105,38 @@ public class GameMaster : MonoBehaviour
 #endif
 	}
 
-	/// <summary> Sets a new game mode & performs any appropriate actions </summary>
-	public void SetupGameMode()
+	/// <summary> Changes to a new Game State </summary>
+	/// <param name="_gameState"> GameStates.* state to set </param>
+	void SetGameState(GameStates _gameState)
 	{
+		gameState = _gameState;
+
+		switch (gameState)
+		{
+			case GameStates.Menu:
+				UIMaster.instance.mainMenu.gameObject.SetActive(true);
+				break;
+
+			case GameStates.Gameplay:
+				break;
+
+			default:
+				break;
+		}
+	}
+
+	/// <summary> Starts the specified GameMode </summary>
+	/// <param name="_gameModeType"> Which Game Mode to start </param>
+	public void StartGame(GameMode.GameModeTypes _gameModeType)
+	{
+		switch (_gameModeType)
+		{
+			case GameMode.GameModeTypes.Original:	gameMode = gameObject.AddComponent<GameModeOriginal>();		break;
+//			case GameMode.GameModeTypes.Arcade:		gameMode = gameObject.AddComponent<GameModeArcade>();		break;
+
+			default: throw new UnityException("Unhandled Game Mode Type " + _gameModeType);
+		}
+
 		towers = new Tower[gameMode.NumTowers];
 		for (int i = 0; i < towers.Length; ++i)
 		{
@@ -122,8 +161,12 @@ public class GameMaster : MonoBehaviour
 			towers[i] = tower;
 		}
 
-		SetStartingLevel(gameMode.AlwaysStartOnLevel1 ? 1 : PlayerPrefs.GetInt(Constants.ppkPPStartingLevel, 1));
 		levelIncreaseRate = gameMode.LevelIncreaseRate;
+		SetStartingLevel(gameMode.AlwaysStartOnLevel1 ? 1 : PlayerPrefs.GetInt(Constants.ppkPPStartingLevel, 1));
+		SetNewLevel(0.0f, true);
+		ResetScore();
+
+		SetGameState(GameStates.Gameplay);
 	}
 
 	/// <summary> Sets the starting level and adjusts game speeds accordingly </summary>
@@ -210,7 +253,6 @@ public class GameMaster : MonoBehaviour
 
 			levelInt = Mathf.FloorToInt(level);
 		}
-
 	
 		// Add to the player's progress bar
 		if (gameMode.HasRingBar)
