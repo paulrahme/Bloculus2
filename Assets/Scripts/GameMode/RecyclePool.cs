@@ -53,4 +53,15 @@ public class RecyclePool
 
 		return gameObj;
 	}
+
+	public static void ClearAllPools()
+	{
+		for (int i = 0; i < pools.Length; ++i)
+		{
+			Stack<GameObject> pool = pools[i];
+			while (pool.Count > 0)
+				Object.Destroy(pool.Pop());
+			pool.Clear();
+		}
+	}
 }

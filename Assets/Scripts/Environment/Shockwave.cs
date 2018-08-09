@@ -19,7 +19,7 @@ public class Shockwave : MonoBehaviour
 		GameObject gameObj = RecyclePool.RetrieveOrCreate(RecyclePool.PoolTypes.Shockwave, _prefab);
 
 		// Set position & rotation
-		gameObj.transform.parent = null;
+		gameObj.transform.parent = Environment.instance.transform;
 		gameObj.transform.position = _position;
 		gameObj.transform.localScale = Vector3.zero;
 		gameObj.GetComponent<Renderer>().material.color = _color;

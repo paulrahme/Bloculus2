@@ -132,7 +132,7 @@ public class GameMaster : MonoBehaviour
 		switch (_gameModeType)
 		{
 			case GameMode.GameModeTypes.Original:	gameMode = gameObject.AddComponent<GameModeOriginal>();		break;
-//			case GameMode.GameModeTypes.Arcade:		gameMode = gameObject.AddComponent<GameModeArcade>();		break;
+			case GameMode.GameModeTypes.Arcade:		gameMode = gameObject.AddComponent<GameModeArcade>();		break;
 
 			default: throw new UnityException("Unhandled Game Mode Type " + _gameModeType);
 		}
@@ -205,17 +205,43 @@ public class GameMaster : MonoBehaviour
 			towers[i].ReplayGame();
 	}
 
-	/// <summary> Closes the popup window & continues gameplay </summary>
+	/// <summary> Pauses the gameplay </summary>
+	public void Pause()
+	{
+		Environment.instance.PauseAllShockwaves(true);
+		Environment.instance.musicController.PauseGameMusic();
+		enabled = false;
+		gameState = GameStates.Paused;
+	}
+
+	/// <summary> Resumes gameplay </summary>
 	public void UnpauseGame()
 	{
 		Environment.instance.PauseAllShockwaves(false);
 		Environment.instance.musicController.UnpauseGameMusic();
+		enabled = true;
+		gameState = GameStates.Gameplay;
 	}
 
 	/// <summary> Starts the Game Over sequence </summary>
 	public void GameOver()
 	{
 		Environment.instance.GameOver();
+		gameState = GameStates.GameOver;
+	}
+
+	/// <summary> Destroys all towers and resets game state </summary>
+	public void QuitGame()
+	{
+		for (int i = 0; i < towers.Length; ++i)
+		{
+			Tower tower = towers[i];
+			Destroy(tower.gameObject);
+		}
+		towers = null;
+		RecyclePool.ClearAllPools();
+
+		gameState = GameStates.Menu;
 	}
 
 	/// <summary> Resets the player's progress bar </summary>

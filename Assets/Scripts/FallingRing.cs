@@ -38,10 +38,11 @@ public class FallingRing : MonoBehaviour
 	/// <param name="_color"> Colour to tint the material </param>
 	void Init(Tower _parentTower, Vector3 _position, float _scale, Color _color)
 	{
+		parentTower = _parentTower;
 		myTrans = transform;
+		myTrans.parent = Environment.instance.transform;
 		myTrans.position = _position;
 		myTrans.localScale = new Vector3(_scale, _scale, _scale);
-		parentTower = _parentTower;
 		myMaterial = GetComponent<Renderer>().material;
 		myMaterial.color = new Color(_color.r * 0.5f, _color.g * 0.5f, _color.b * 0.5f);
 		lifeCounter = 1.0f;

@@ -110,13 +110,11 @@ public partial class Tower : MonoBehaviour
 		block.gameObj.SetActive(false);
 	}
 
-	public void EmptyRecyclePool()
+	/// <summary> Recycles all currently active blocks in the tower </summary>
+	public void RecycleAllBlocks()
 	{
-		foreach (Stack<Block> blockStack in blockPools)
-		{
-			while (blockStack.Count > 0)
-				Destroy(blockStack.Pop().gameObj);
-		}
+		for (int i = 0; i < blocks.Length; ++i)
+			RecycleBlock(blocks[i]);
 	}
 
 	#endregion // Block pool
@@ -203,6 +201,13 @@ public partial class Tower : MonoBehaviour
 					ClearBlock(block, _disappearAnim);
 			}
 		}
+	}
+
+	public void ClearSpawnedEffects()
+	{
+		for (int i = 0; i < fallingRings.Count; ++i)
+			Destroy(fallingRings[i].gameObject);
+		fallingRings.Clear();
 	}
 	
 	/// <summary> Sets the 3d falling drops to pause/unpause </summary>
