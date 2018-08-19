@@ -54,6 +54,6 @@ MonoBehaviour:
   towerPrefab: {fileID: 114834958376120796, guid: 06cf7361d2eea4b86849bb233b0573e2,
     type: 2}
   ringFillCapacityMin: 45
-  ringFilleCapacityMax: 150
+  ringFillCapacityMax: 150
   levelMin: 1
   levelMax: 33

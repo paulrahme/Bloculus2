@@ -84,8 +84,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 896e34b5a37214baeb6f7e4ad0602a3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lifetime: 2
-  growScale: 75
+  lifetime: 1.5
+  growScale: 150
 --- !u!1001 &100100000
 Prefab:
   m_ObjectHideFlags: 1

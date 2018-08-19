@@ -6,10 +6,11 @@ public class GroundController : MonoBehaviour
 
 	#region Inspector variables
 
-	public float		rippleStrength = 0.03f;
-	public Vector2		scrollSpeedFastest = new Vector2(0.0f, -6.0f);
-	public Vector2		scrollSpeedSlowest = new Vector2(0.0f, -0.6f);
-	public Material[]	levelMaterials;
+	[SerializeField] float		rippleStrength = 0.03f;
+	[SerializeField] float		rippleDropOffMult = 0.22f;
+	[SerializeField] Vector2	scrollSpeedFastest = new Vector2(0.0f, -6.0f);
+	[SerializeField] Vector2	scrollSpeedSlowest = new Vector2(0.0f, -0.6f);
+	[SerializeField] Material[]	levelMaterials = null;
 
 	#endregion	// Inspector variables
 
@@ -64,11 +65,12 @@ public class GroundController : MonoBehaviour
 			scrollSpeed.y *= 0.5f;
 	}
 	
-	/// <summary> Called once per frame by the Tower script, when the game is in play </summary>
+	/// <summary> Called once per frame by the Environment script, when the game is in play </summary>
 	public void UpdateEffect()
 	{
 		for (var i = 1; i < numVertices - 1; i++)
 		{
+			// End of the mesh - don't look at next row
 			if (i > numVertices - gridRows - 2)
 			{
 				meshVertices[i].z += meshVertices[i - 1].z + meshVertices[i + 1].z;
@@ -77,7 +79,7 @@ public class GroundController : MonoBehaviour
 			else
 			{
 				meshVertices[i].z += (meshVertices[i + gridRows - 1].z + meshVertices[i + gridRows + 1].z) * 2.0f;
-				meshVertices[i].z *= 0.21f;
+				meshVertices[i].z *= rippleDropOffMult;
 			}
 		}
 

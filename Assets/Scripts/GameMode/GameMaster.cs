@@ -11,7 +11,7 @@ public class GameMaster : MonoBehaviour
 
 	[SerializeField] Tower towerPrefab = null;
 	[SerializeField] int ringFillCapacityMin = 45;
-	[SerializeField] int ringFilleCapacityMax = 150;
+	[SerializeField] int ringFillCapacityMax = 150;
 	[SerializeField] int levelMin = 1;
 	[SerializeField] int levelMax = 33;
 
@@ -30,8 +30,7 @@ public class GameMaster : MonoBehaviour
 	float startingLevel;
 	float scoreDifficultyMult;
 
-	float	GetLevelPercentCapped() { return Mathf.Min(GetProgressThroughLevels(), 1.0f); }
-	bool	IsPlayerBarFull() { return (playerBarValue >= playerBarCapacity); }
+	bool IsPlayerBarFull() { return (playerBarValue >= playerBarCapacity); }
 
 	/// <summary> Singleton instance </summary>
 	public static GameMaster instance;
@@ -89,7 +88,7 @@ public class GameMaster : MonoBehaviour
 		}
 
 		// Update ground
-		GroundController.Instance.UpdateEffect();
+		Environment.instance.UpdateEffects(_dTime);
 
 		// Check for level complete
 		if (IsPlayerBarFull())
@@ -182,7 +181,7 @@ public class GameMaster : MonoBehaviour
 	}
 
 
-	/// <summary> Resets the score & the jar </summary>
+	/// <summary> Resets the score & the player's progress </summary>
 	void ResetScore()
 	{
 		score = 0;
@@ -191,9 +190,14 @@ public class GameMaster : MonoBehaviour
 	
 	/// <summary> Gets the current progress through all levels </summary>
 	/// <returns> Level progress between from 0 to 1 </returns>
-	public float GetProgressThroughLevels()
+	public float GetProgressThroughLevels(bool _capTo1 = false)
 	{
-		return ((level - Convert.ToSingle(levelMin)) / Convert.ToSingle(levelMax - levelMin));
+		float progress = ((level - Convert.ToSingle(levelMin)) / Convert.ToSingle(levelMax - levelMin));
+
+		if (_capTo1 && (progress > 1f))
+			progress = 1f;
+
+		return progress;
 	}
 
 	/// <summary> Restarts with the previous settings </summary>
@@ -270,7 +274,7 @@ public class GameMaster : MonoBehaviour
 		if (Mathf.FloorToInt(level) != levelInt)
 		{
 			// Update speeds & tower layout for next level
-			float levelPercent = GetLevelPercentCapped();
+			float levelPercent = GetProgressThroughLevels(true);
 			SetNewLevel(levelPercent, false);
 
 			// If it's in gameplay, trigger the "level complete" sequence
@@ -290,7 +294,7 @@ public class GameMaster : MonoBehaviour
 	/// <param name="_resetTowers"> True to reset towers, false to leave them as is </param>
 	public void SetNewLevel(float _progressThroughAllLevels, bool _resetTowers)
 	{
-		playerBarCapacity = ringFillCapacityMin + Convert.ToInt32(Convert.ToSingle(ringFilleCapacityMax - ringFillCapacityMin) * _progressThroughAllLevels);
+		playerBarCapacity = ringFillCapacityMin + Convert.ToInt32(Convert.ToSingle(ringFillCapacityMax - ringFillCapacityMin) * _progressThroughAllLevels);
 
 		for (int i = 0; i < towers.Length; ++i)
 			towers[i].SetNewLevel(_progressThroughAllLevels, _resetTowers);

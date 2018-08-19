@@ -30,7 +30,7 @@ public class Environment : MonoBehaviour
 
 	#endregion  // Inspector variables
 
-	public List<Shockwave> shockwaves = new List<Shockwave>();
+	internal List<Shockwave> shockwaves = new List<Shockwave>();
 
 	/// <summary> Singleton instance </summary>
 	public static Environment instance;
@@ -43,13 +43,13 @@ public class Environment : MonoBehaviour
 		instance = this;
 	}
 
-	/// <summary> Called once per frame </summary>
-	void Update()
+	/// <summary> Called once per frame from GameMaster </summary>
+	public void UpdateEffects(float _dTime)
 	{
-		float dTime = Time.deltaTime;
+		groundController.UpdateEffect();
 
 		for (int i = 0; i < shockwaves.Count; ++i)
-			shockwaves[i].UpdateRipple(dTime);
+			shockwaves[i].UpdateRipple(_dTime);
 	}
 
 	/// <summary> Changes the background to match the level </summary>
