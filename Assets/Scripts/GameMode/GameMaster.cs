@@ -161,7 +161,7 @@ public class GameMaster : MonoBehaviour
 		}
 
 		levelIncreaseRate = gameMode.LevelIncreaseRate;
-		SetStartingLevel(gameMode.AlwaysStartOnLevel1 ? 1 : PlayerPrefs.GetInt(Constants.ppkPPStartingLevel, 1));
+		SetStartingLevel(gameMode.AlwaysStartOnLevel1 ? 1 : PlayerPrefs.GetInt(Constants.ppStartingLevel, 1));
 		SetNewLevel(0.0f, true);
 		ResetScore();
 
