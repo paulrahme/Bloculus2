@@ -41,6 +41,8 @@ public class GameMaster : MonoBehaviour
 		if (instance != null)
 			throw new UnityException("Singleton instance already exists");
 		instance = this;
+
+		UnityEngine.SceneManagement.SceneManager.LoadScene("UI", UnityEngine.SceneManagement.LoadSceneMode.Additive);
 	}
 
 	/// <summary> Called before first Update() </summary>

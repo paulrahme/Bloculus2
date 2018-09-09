@@ -6,6 +6,7 @@ public class UIMaster : MonoBehaviour
 	public UI_MainMenu mainMenu;
 	public UI_HUD hud;
 	public UI_PauseMenu pauseMenu;
+	public Camera myCamera;
 	#endregion	// Inspector variables
 
 	/// <summary> Singleton instance </summary>
@@ -17,6 +18,8 @@ public class UIMaster : MonoBehaviour
 		if (instance != null)
 			throw new UnityException("Singleton instance already exists");
 		instance = this;
+
+		myCamera.enabled = false;	// Not needed during runtime
 	}
 
 	/// <summary> Called before first Update() </summary>
