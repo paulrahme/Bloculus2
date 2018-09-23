@@ -2,17 +2,25 @@
 
 public class UI_MainMenu : MonoBehaviour
 {
-	public void StartGameMode_Original()
+	void StartGameMode(GameMode.GameModeTypes _gameMode)
 	{
-		GameMaster.instance.StartGame(GameMode.GameModeTypes.Original);
+		GameMaster.instance.StartGame(_gameMode);
 		UIMaster.instance.hud.gameObject.SetActive(true);
 		gameObject.SetActive(false);
 	}
 
+	public void StartGameMode_Original()
+	{
+		StartGameMode(GameMode.GameModeTypes.Original);
+	}
+
 	public void StartGameMode_Arcade()
 	{
-		GameMaster.instance.StartGame(GameMode.GameModeTypes.Arcade);
-		UIMaster.instance.hud.gameObject.SetActive(true);
-		gameObject.SetActive(false);
+		StartGameMode(GameMode.GameModeTypes.Arcade);
+	}
+
+	public void StartGameMode_PVPLocal()
+	{
+		StartGameMode(GameMode.GameModeTypes.PVPLocal);
 	}
 }

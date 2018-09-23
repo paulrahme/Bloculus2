@@ -88,7 +88,7 @@ public class Environment : MonoBehaviour
 
 		BgColor colors = bgColors[levelGroup];
 		TowerCamera.instance.SetBackgroundColor(Color.Lerp(colors.colorStart, colors.colorEnd, progress));
-		GroundController.Instance.SetMaterial(levelGroup);
+		GroundController.instance.SetMaterial(levelGroup);
 
 		return levelGroup;
 	}

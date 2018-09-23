@@ -1,5 +1,4 @@
 using UnityEngine;
-using System;
 
 public class TowerCamera : MonoBehaviour
 {
@@ -12,6 +11,7 @@ public class TowerCamera : MonoBehaviour
 	#endregion // Inspector variables
 
 	Transform myTrans;
+	Vector3 basePos;
 	Vector3 sourcePos, targetPos;
 	float sourceFov, targetFov;
 	float blendSpeed;
@@ -49,13 +49,22 @@ public class TowerCamera : MonoBehaviour
 		// Convert 0-1 progress into anim curve
 		float animatedProgress = blendAnimCurve.Evaluate(blendProgress);
 		if (blendPos)
-			transform.position = Vector3.LerpUnclamped(sourcePos, targetPos, blendProgress);
+			myTrans.position = Vector3.LerpUnclamped(sourcePos, targetPos, blendProgress);
 		if (blendFov)
 			myCam.fieldOfView = (sourceFov * (1.0f - animatedProgress)) + (targetFov * animatedProgress);
 
 		// If finished, turn off updating
 		if (finished)
 			blendPos = blendFov = enabled = false;
+	}
+
+	/// <summary> Sets up the position + FoV for the current type of gameplay </summary>
+	/// <param name="_Layout"> Layout info struct </param>
+	public void SetLayout(GameMaster.ViewLayout _Layout)
+	{
+		basePos = myTrans.localPosition = sourcePos = targetPos = _Layout.cameraPos;
+		myCam.fieldOfView = sourceFov = targetFov = _Layout.cameraFoV;
+		blendPos = blendFov = false;
 	}
 
 	/// <summary> Changes the color of the background </summary>
@@ -69,7 +78,10 @@ public class TowerCamera : MonoBehaviour
 	public void StartBlendingPos(float _height, float _distance)
 	{
 		sourcePos = myTrans.position;
-		targetPos = new Vector3(sourcePos.x, _height, _distance);
+		targetPos.x = sourcePos.x;
+		targetPos.y = basePos.y + _height;
+		targetPos.z = basePos.z + _distance;
+
 		blendPos = true;
 		blendProgress = 0.0f;
 		enabled = true;
@@ -85,8 +97,10 @@ public class TowerCamera : MonoBehaviour
 		enabled = true;
 	}
 
+#if UNITY_EDITOR
 	[ContextMenu("Blend FOV to 40")] void BlendFov40() { StartBlendingFov(40.0f); }
 	[ContextMenu("Blend FOV to 120")] void BlendFov120() { StartBlendingFov(120.0f); }
 	[ContextMenu("Blend Pos to -10")] void BlendPosNeg10() { StartBlendingPos(1.0f, -10.0f); }
 	[ContextMenu("Blend Pos to -100")] void BlendPosNeg100() { StartBlendingPos(1.0f, -100.0f); }
+#endif
 }

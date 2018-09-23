@@ -12,28 +12,30 @@ public class GroundController : MonoBehaviour
 	[SerializeField] Vector2	scrollSpeedSlowest = new Vector2(0.0f, -0.6f);
 	[SerializeField] Material[]	levelMaterials = null;
 
-	#endregion	// Inspector variables
+	#endregion // Inspector variables
 
-	Vector2				scrollSpeed;
-	Vector2				scrollWrapAmounts;
-	Vector2				scrollOffset;
-	Renderer			mainRenderer;
-	Material			mainMaterial;
-	Mesh				mainMesh;
-	Vector3[]			meshVertices;
-	int					numVertices;
+	internal Transform myTrans;
+	Vector2 scrollSpeed;
+	Vector2 scrollWrapAmounts;
+	Vector2 scrollOffset;
+	Renderer mainRenderer;
+	Material mainMaterial;
+	Mesh mainMesh;
+	Vector3[] meshVertices;
+	int numVertices;
 
 	/// <summary> Singleton instance </summary>
-	public static GroundController Instance;
+	public static GroundController instance;
 
 	/// <summary> Called when object/script activates </summary>
 	void Awake()
 	{
-		if (Instance != null)
+		if (instance != null)
 			throw new UnityException("Singleton instance already exists");
-		Instance = this;
+		instance = this;
 
 		// Cache renderer + material
+		myTrans = transform;
 		mainRenderer = GetComponent<Renderer>();
 		mainMaterial = mainRenderer.material;
 
@@ -48,6 +50,16 @@ public class GroundController : MonoBehaviour
 		numVertices = meshVertices.Length;
 	}
 
+	/// <summary> Sets the position, scale, etc for the current gameplay's view </summary>
+	/// <param name="_layout"> Layout info struct </param>
+	public void SetLayout(GameMaster.ViewLayout _layout)
+	{
+		myTrans.localPosition = _layout.groundPos;
+		myTrans.localScale = _layout.groundScale;
+	}
+
+	/// <summary> Sets the (tiled) material to use </summary>
+	/// <param name="materialIdx"> Index into material array </param>
 	public void SetMaterial(int materialIdx)
 	{
 		mainRenderer.material = levelMaterials[materialIdx];

@@ -16,4 +16,18 @@ public class CustomMenuItems : MonoBehaviour
 		if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
 			EditorSceneManager.OpenScene(EditorSceneManager.GetActiveScene().path);
 	}
+
+	[MenuItem("Bloculus/Scenes/Load 'UI' Scene")]
+	public static void LoadSceneUI()
+	{
+		if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+			EditorSceneManager.OpenScene("Assets/Scenes/UI.unity");
+	}
+
+	[MenuItem("Bloculus/Scenes/Load 'Game' Scene")]
+	public static void LoadSceneGame()
+	{
+		if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+			EditorSceneManager.OpenScene("Assets/Scenes/Game.unity");
+	}
 }

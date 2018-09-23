@@ -1,15 +1,22 @@
 ﻿using System;
 using UnityEngine;
 
-public class GameMaster : MonoBehaviour
+public partial class GameMaster : MonoBehaviour
 {
-	enum ControllerTypes { Keyboard, Gamepad, Touchscreen };
-	readonly ControllerTypes[] controllerTypes = { ControllerTypes.Keyboard, ControllerTypes.Gamepad };
+	enum ControllerTypes { KeyboardWASD, KeyboardArrows, Gamepad, Touchscreen };
+	readonly ControllerTypes[] controllerTypes = { ControllerTypes.KeyboardWASD, ControllerTypes.KeyboardArrows };
 	enum GameStates { Menu, PreGame, Gameplay, Paused, GameOver };
 
 	#region Inspector variables
 
+	[Header("Prefabs")]
 	[SerializeField] Tower towerPrefab = null;
+
+	[Header("View Layouts")]
+	[SerializeField] ViewLayout viewLayout1Tower = null;
+	[SerializeField] ViewLayout viewLayout2Towers = null;
+
+	[Header("Level tuning")]
 	[SerializeField] int ringFillCapacityMin = 45;
 	[SerializeField] int ringFillCapacityMax = 150;
 	[SerializeField] int levelMin = 1;
@@ -134,21 +141,44 @@ public class GameMaster : MonoBehaviour
 		{
 			case GameMode.GameModeTypes.Original:	gameMode = gameObject.AddComponent<GameModeOriginal>();		break;
 			case GameMode.GameModeTypes.Arcade:		gameMode = gameObject.AddComponent<GameModeArcade>();		break;
+			case GameMode.GameModeTypes.PVPLocal:	gameMode = gameObject.AddComponent<GameModePVP>();			break;
 
 			default: throw new UnityException("Unhandled Game Mode Type " + _gameModeType);
 		}
+
+		ViewLayout viewLayout;
+		switch (gameMode.NumTowers)
+		{
+			case 1: viewLayout = viewLayout1Tower; break;
+			case 2: viewLayout = viewLayout2Towers; break;
+
+			default: throw new UnityException("Unhandled tower layout for '" + gameMode.NumTowers + "' towers");
+		}
+		TowerCamera.instance.SetLayout(viewLayout);
+		GroundController.instance.SetLayout(viewLayout);
 
 		towers = new Tower[gameMode.NumTowers];
 		for (int i = 0; i < towers.Length; ++i)
 		{
 			Tower tower = Instantiate(towerPrefab);
+			tower.basePosition = viewLayout.towerPositions[i];
 
 			switch (controllerTypes[i])
 			{
-				case ControllerTypes.Keyboard:
-					TowerControlKeyboard controller = tower.gameObject.AddComponent<TowerControlKeyboard>();
-					tower.controller = controller;
-					controller.Init(KeyCode.LeftArrow, KeyCode.RightArrow, KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.Space);
+				case ControllerTypes.KeyboardWASD:
+					{
+						TowerControlKeyboard controller = tower.gameObject.AddComponent<TowerControlKeyboard>();
+						tower.controller = controller;
+						controller.Init(KeyCode.A, KeyCode.D, KeyCode.W, KeyCode.S, KeyCode.Space);
+					}
+					break;
+
+				case ControllerTypes.KeyboardArrows:
+					{
+						TowerControlKeyboard controller = tower.gameObject.AddComponent<TowerControlKeyboard>();
+						tower.controller = controller;
+						controller.Init(KeyCode.LeftArrow, KeyCode.RightArrow, KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.Return);
+					}
 					break;
 
 				case ControllerTypes.Gamepad:

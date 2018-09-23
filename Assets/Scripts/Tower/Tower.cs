@@ -48,6 +48,7 @@ public partial class Tower : MonoBehaviour
 	internal int columns = 12;
 	internal int rows = 10;
 	int currentBlockTypes = 6;
+	internal Vector3 basePosition;
 	float blockScale;
 	float halfSelectorAngle;
 	int blockStyle;
@@ -154,7 +155,7 @@ public partial class Tower : MonoBehaviour
 	public void RefreshTower(bool _createRandomBlocks)
 	{
 		// Set distance away from the camera
-		transform.localPosition = new Vector3(0.0f, 0.0f, minDistanceFromCamera + columns);
+		transform.localPosition = new Vector3(basePosition.x, basePosition.y, basePosition.z + minDistanceFromCamera + columns);
 		
 		// Calculate scale for block transforms
 		blockScale = towerRadius * 6.0f / columns;

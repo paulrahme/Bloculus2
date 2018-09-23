@@ -4,7 +4,6 @@ public class FallingRing : MonoBehaviour
 {
 	#region Inspector variables
 
-	[SerializeField] float		lifetime = 2.0f;
 	[SerializeField] Vector3	acceleration = new Vector3(0.0f, -0.2f, 0.0f);
 	[SerializeField] float		spinSpeed = 720.0f;
 	[SerializeField] bool		createShockwave = true;
@@ -12,7 +11,7 @@ public class FallingRing : MonoBehaviour
 	#endregion   // Inspector variables
 
 	Tower parentTower;
-	float lifeCounter;
+	float targetYPos;
 	Vector3 velocity;
 	Vector3 cachedSpinVec;
 	Transform myTrans;
@@ -45,7 +44,7 @@ public class FallingRing : MonoBehaviour
 		myTrans.localScale = new Vector3(_scale, _scale, _scale);
 		myMaterial = GetComponent<Renderer>().material;
 		myMaterial.color = new Color(_color.r * 0.5f, _color.g * 0.5f, _color.b * 0.5f);
-		lifeCounter = 1.0f;
+		targetYPos = GroundController.instance.myTrans.position.y;
 		velocity = Vector3.zero;
 		cachedSpinVec = new Vector3(0.0f, spinSpeed, 0.0f);
 		gameObject.SetActive(true);
@@ -54,14 +53,13 @@ public class FallingRing : MonoBehaviour
 	/// <summary> Called from the parent Tower's Update() </summary>
 	public void UpdateFalling(float _dTime)
 	{
-		lifeCounter -= _dTime / lifetime;
-		if (lifeCounter <= 0.0f)
+		if (myTrans.position.y <= targetYPos)
 		{
 			if (createShockwave)
 			{
 				// Add ripple & create pulse
-				GroundController.Instance.AddRipple(myTrans.position.x);
-				Vector3 ripplePos = new Vector3(myTrans.position.x, GroundController.Instance.transform.position.y, parentTower.transform.position.z);
+				GroundController.instance.AddRipple(myTrans.position.x);
+				Vector3 ripplePos = new Vector3(myTrans.position.x, GroundController.instance.transform.position.y, parentTower.transform.position.z);
 				Shockwave.StartRipple(parentTower.rippleRingPrefab, ripplePos, myMaterial.color);
 			}
 
