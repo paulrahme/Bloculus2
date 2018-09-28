@@ -5,8 +5,7 @@ public class UI_MainMenu : MonoBehaviour
 	void StartGameMode(GameMode.GameModeTypes _gameMode)
 	{
 		GameMaster.instance.StartGame(_gameMode);
-		UIMaster.instance.hud.gameObject.SetActive(true);
-		gameObject.SetActive(false);
+		UIMaster.instance.GameplayStarted();
 	}
 
 	public void StartGameMode_Original()

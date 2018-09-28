@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class UIMaster : MonoBehaviour
 {
@@ -16,6 +17,13 @@ public class UIMaster : MonoBehaviour
 	/// <summary> Called when object/script activates </summary>
 	void Awake()
 	{
+#if UNITY_EDITOR
+		if (GameMaster.instance == null)
+		{
+			SceneManager.LoadScene("Assets/Scenes/Game.unity");
+			return;
+		}
+#endif
 		if (instance != null)
 			throw new UnityException("Singleton instance already exists");
 		instance = this;
@@ -29,17 +37,25 @@ public class UIMaster : MonoBehaviour
 		mainMenu.gameObject.SetActive(true);
 	}
 
+	/// <summary> Called on start of game </summary>
+	public void GameplayStarted()
+	{
+		hud.SetGameplayElementsVisible(true);
+		hud.gameObject.SetActive(true);
+		mainMenu.gameObject.SetActive(false);
+	}
+
 	/// <summary> Shows the pause screen </summary>
 	public void Pause()
 	{
-		hud.gameObject.SetActive(false);
+		hud.SetGameplayElementsVisible(false);
 		pauseMenu.gameObject.SetActive(true);
 	}
 
 	/// <summary> Shows the Game Over screen </summary>
 	public void GameOver()
 	{
-		hud.gameObject.SetActive(false);
+		hud.SetGameplayElementsVisible(false);
 		gameOverMenu.gameObject.SetActive(true);
 	}
 
@@ -48,12 +64,13 @@ public class UIMaster : MonoBehaviour
 	{
 		pauseMenu.gameObject.SetActive(false);
 		gameOverMenu.gameObject.SetActive(false);
-		hud.gameObject.SetActive(true);
+		hud.SetGameplayElementsVisible(true);
 	}
 
 	/// <summary> Disables pause screen & quits back to main menu </summary>
 	public void Quit()
 	{
+		hud.gameObject.SetActive(false);
 		pauseMenu.gameObject.SetActive(false);
 		gameOverMenu.gameObject.SetActive(false);
 		mainMenu.gameObject.SetActive(true);

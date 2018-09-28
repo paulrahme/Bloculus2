@@ -689,9 +689,8 @@ public partial class Tower : MonoBehaviour
 
 		return scoreChain;
 	}
-	
-	#endregion	// Block logic
 
+	#endregion // Block logic
 
 	/// <summary> Returns the number wrapped into the range [0..gColums) </summary>
 	/// <param name='_col'> Unwrapped column </param>

@@ -30,12 +30,12 @@ public partial class GameMaster : MonoBehaviour
 	float level;
 	int levelInt;
 	float levelIncreaseRate;
-	int score;
 	int playerBarCapacity;
 	int playerBarValue;
 	public static System.Random randomGen = new System.Random();
 	float startingLevel;
 	float scoreDifficultyMult;
+	UI_Score[] scores;
 
 	bool IsPlayerBarFull() { return (playerBarValue >= playerBarCapacity); }
 	public bool IsGameOver { get { return (gameState == GameStates.GameOver); } }
@@ -79,22 +79,20 @@ public partial class GameMaster : MonoBehaviour
 		UpdateLevelProgress(_dTime);
 
 		// Update tower/s
-		int scoreChainThisFrame = 0;
 		for (int i = 0; i < towers.Length; ++i)
 		{
 			int scoreChainFromTower;
 			towers[i].UpdateTower(_dTime, out scoreChainFromTower);
-			scoreChainThisFrame += scoreChainFromTower;
-		}
 
-		// Add score, if any
-		if (scoreChainThisFrame != 0)
-		{
-			int scoreThisFrame = 1 << scoreChainThisFrame;
-			scoreThisFrame += Convert.ToInt32(Convert.ToSingle(scoreThisFrame) * scoreDifficultyMult);
-			scoreThisFrame += Convert.ToInt32(level * 3.0f / Convert.ToSingle(levelMax - levelMin));
-			scoreThisFrame *= 10;
-			score += scoreThisFrame;
+			// Add score, if any
+			if (scoreChainFromTower != 0)
+			{
+				int scoreThisFrame = 1 << scoreChainFromTower;
+				scoreThisFrame += Convert.ToInt32(Convert.ToSingle(scoreThisFrame) * scoreDifficultyMult);
+				scoreThisFrame += Convert.ToInt32(level * 3.0f / Convert.ToSingle(levelMax - levelMin));
+				scoreThisFrame *= 10;
+				scores[i].Score += scoreThisFrame;
+			}
 		}
 
 		// Update ground
@@ -151,10 +149,13 @@ public partial class GameMaster : MonoBehaviour
 
 			default: throw new UnityException("Unhandled tower layout for '" + gameMode.NumTowers + "' towers");
 		}
+
 		TowerCamera.instance.SetLayout(viewLayout);
 		GroundController.instance.SetLayout(viewLayout);
-
+		UIMaster.instance.hud.ClearScores();
+		scores = new UI_Score[gameMode.NumTowers];
 		towers = new Tower[gameMode.NumTowers];
+
 		for (int i = 0; i < towers.Length; ++i)
 		{
 			Tower tower = Instantiate(towerPrefab);
@@ -186,13 +187,13 @@ public partial class GameMaster : MonoBehaviour
 					throw new UnityException("Unhandled Controller Type " + controllerTypes[i]);
 			}
 
+			scores[i] = UIMaster.instance.hud.AddScore("Player " + (i + 1));
 			towers[i] = tower;
 		}
 
 		levelIncreaseRate = gameMode.LevelIncreaseRate;
 		SetStartingLevel(gameMode.AlwaysStartOnLevel1 ? 1 : PlayerPrefs.GetInt(Constants.ppStartingLevel, 1));
 		SetNewLevel(0.0f, true);
-		ResetScore();
 
 		SetGameState(GameStates.Gameplay);
 	}
@@ -209,11 +210,13 @@ public partial class GameMaster : MonoBehaviour
 		Environment.instance.UpdateBackground(level, levelMax, false);
 	}
 
+	#region Scoring
 
 	/// <summary> Resets the score & the player's progress </summary>
-	void ResetScore()
+	void ResetScores()
 	{
-		score = 0;
+		for (int i = 0; i < scores.Length; ++i)
+			scores[i].Score = 0;
 		ResetPlayerBar();
 	}
 	
@@ -229,10 +232,12 @@ public partial class GameMaster : MonoBehaviour
 		return progress;
 	}
 
+	#endregion // Scoring
+
 	/// <summary> Restarts with the previous settings </summary>
 	public void RestartGame()
 	{
-		ResetScore();
+		ResetScores();
 		gameMode.GameHasBegun();
 		for (int i = 0; i < towers.Length; ++i)
 			towers[i].ReplayGame();
