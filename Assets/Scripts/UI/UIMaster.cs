@@ -5,7 +5,8 @@ public class UIMaster : MonoBehaviour
 	#region Inspector variables
 	public UI_MainMenu mainMenu;
 	public UI_HUD hud;
-	public UI_PauseMenu pauseMenu;
+	public UI_InGameMenu pauseMenu;
+	public UI_InGameMenu gameOverMenu;
 	public Camera myCamera;
 	#endregion	// Inspector variables
 
@@ -35,10 +36,18 @@ public class UIMaster : MonoBehaviour
 		pauseMenu.gameObject.SetActive(true);
 	}
 
+	/// <summary> Shows the Game Over screen </summary>
+	public void GameOver()
+	{
+		hud.gameObject.SetActive(false);
+		gameOverMenu.gameObject.SetActive(true);
+	}
+
 	/// <summary> Disables pause screen & goes back to gameplay </summary>
 	public void Unpause()
 	{
 		pauseMenu.gameObject.SetActive(false);
+		gameOverMenu.gameObject.SetActive(false);
 		hud.gameObject.SetActive(true);
 	}
 
@@ -46,6 +55,7 @@ public class UIMaster : MonoBehaviour
 	public void Quit()
 	{
 		pauseMenu.gameObject.SetActive(false);
+		gameOverMenu.gameObject.SetActive(false);
 		mainMenu.gameObject.SetActive(true);
 	}
 }

@@ -71,7 +71,6 @@ public partial class Tower : MonoBehaviour
 	int		BlockIdx(int _col, int _row) { return (_row * columns) + _col; }
 	Block	GetBlock(int _col, int _row) { return blocks[BlockIdx(_col, _row)]; }
 	bool	IsBlockAboutToShiftDown(Block _block) { return ((_block.row != 0) && (GetBlock(_block.col, _block.row - 1) == null)); }
-	void	DeleteTemporaryObjects() { foreach (GameObject tempObject in GameObject.FindGameObjectsWithTag("TemporaryObject")) { Destroy(tempObject); }	}
 
 	#region Block pool
 	
@@ -109,13 +108,6 @@ public partial class Tower : MonoBehaviour
 	{
 		blockPools[block.blockID].Push(block);
 		block.gameObj.SetActive(false);
-	}
-
-	/// <summary> Recycles all currently active blocks in the tower </summary>
-	public void RecycleAllBlocks()
-	{
-		for (int i = 0; i < blocks.Length; ++i)
-			RecycleBlock(blocks[i]);
 	}
 
 	#endregion // Block pool
@@ -187,8 +179,7 @@ public partial class Tower : MonoBehaviour
 	}
 
 	/// <summary> Clears all blocks from the tower </summary>
-	/// <param name="_disappearAnim"> When true, play the disappearing animation </param>
-	public void ClearBlocks(bool _disappearAnim)
+	public void ClearAllBlocks()
 	{
 		if (blocks == null)
 			return;
@@ -199,18 +190,11 @@ public partial class Tower : MonoBehaviour
 			{
 				Block block = GetBlock(col, row);
 				if (block != null)
-					ClearBlock(block, _disappearAnim);
+					ClearBlock(block, false);
 			}
 		}
 	}
 
-	public void ClearSpawnedEffects()
-	{
-		for (int i = 0; i < fallingRings.Count; ++i)
-			Destroy(fallingRings[i].gameObject);
-		fallingRings.Clear();
-	}
-	
 	/// <summary> Sets the 3d falling drops to pause/unpause </summary>
 	/// <param name='_paused'> True to pause, false to unpause </param>
 	void PauseDropsAndShockwaves(bool _paused)
@@ -292,12 +276,20 @@ public partial class Tower : MonoBehaviour
 	/// <summary> Restarts with the previous settings </summary>
 	public void ReplayGame()
 	{
-		ClearBlocks(false);
-		DeleteTemporaryObjects();
+		ClearAllBlocks();
+		ClearSpawnedEffects();
 		RestoreSpeeds();
 		CreateRandomBlocks();
 	}
 
+	/// <summary> Clears all spawned falling objects, etc </summary>
+	public void ClearSpawnedEffects()
+	{
+		for (int i = 0; i < fallingRings.Count; ++i)
+			Destroy(fallingRings[i].gameObject);
+		fallingRings.Clear();
+	}
+	
 	/// <summary> Sets the speeds & tower layout </summary>
 	/// <param name='_progressThroughAllLevels'> Speed scale: 0.0f = slowest, 1.0f = fastest </param>
 	public void SetNewLevel(float _progressThroughAllLevels, bool _resetTower)
@@ -316,7 +308,7 @@ public partial class Tower : MonoBehaviour
 		// Menu selection: always recreate tower with new set of blocks
 		if (_resetTower)
 		{
-			ClearBlocks(false);
+			ClearAllBlocks();
 			columns = newColumns;
 			rows = newRows;
 			RefreshTower(true);
@@ -331,7 +323,7 @@ public partial class Tower : MonoBehaviour
 				List<SavedBlockInfo> oldBlocks = BackupBlocks();
 				
 				// Create (bigger) tower
-				ClearBlocks(false);
+				ClearAllBlocks();
 				columns = newColumns;
 				rows = newRows;
 				RefreshTower(false);
@@ -465,36 +457,40 @@ public partial class Tower : MonoBehaviour
 				}
 			}
 
-			// Reset timer
-			newBlockTimer = newBlockAppearRate;
-
-			// Create next batch of blocks
-			int firstBlockIdxToCreate = GameMaster.randomGen.Next() % columns;
-			int numBlocksToCreate = GameMaster.randomGen.Next() % columns;
-			int prevBlockIdx = -1;
-			for (int col = firstBlockIdxToCreate; col < firstBlockIdxToCreate + numBlocksToCreate; ++col)
+			// Game still in play?
+			if (!GameMaster.instance.IsGameOver)
 			{
-				int wrappedCol = WrapCol(col);
-				int blockIdx = GameMaster.randomGen.Next() % currentBlockTypes;
+				// Reset timer
+				newBlockTimer = newBlockAppearRate;
 
-				// Avoid matching the block it's falling onto
-				Block topMostBlock = FindTopmostBlock(wrappedCol);
-				if ((topMostBlock != null) && (blockIdx == topMostBlock.blockID))
+				// Create next batch of blocks
+				int firstBlockIdxToCreate = GameMaster.randomGen.Next() % columns;
+				int numBlocksToCreate = GameMaster.randomGen.Next() % columns;
+				int prevBlockIdx = -1;
+				for (int col = firstBlockIdxToCreate; col < firstBlockIdxToCreate + numBlocksToCreate; ++col)
 				{
-					blockIdx = (blockIdx + 1) % currentBlockTypes;
-					// Debug.Log("Changed col "+wrappedCol+"'s blockID from "+gBlockPrefabsSolid[topMostBlock.mBlockID]+" to "+gBlockPrefabsSolid[blockIdx]+" (matched topmost block)");
-				}
-				// Avoid 2 matching blocks next to each other
-				else if (blockIdx == prevBlockIdx)
-				{
-					blockIdx = (blockIdx + 1) % currentBlockTypes;
-					// Debug.Log("Changed col "+wrappedCol+"'s blockID from "+gBlockPrefabsSolid[prevBlockIdx]+" to "+gBlockPrefabsSolid[blockIdx]+" (matched block next to it)");
-				}
+					int wrappedCol = WrapCol(col);
+					int blockIdx = GameMaster.randomGen.Next() % currentBlockTypes;
 
-				// Create block
-				blocks[BlockIdx(wrappedCol, rows)] = GetNewBlock(blockIdx, wrappedCol, rows);
+					// Avoid matching the block it's falling onto
+					Block topMostBlock = FindTopmostBlock(wrappedCol);
+					if ((topMostBlock != null) && (blockIdx == topMostBlock.blockID))
+					{
+						blockIdx = (blockIdx + 1) % currentBlockTypes;
+						// Debug.Log("Changed col "+wrappedCol+"'s blockID from "+gBlockPrefabsSolid[topMostBlock.mBlockID]+" to "+gBlockPrefabsSolid[blockIdx]+" (matched topmost block)");
+					}
+					// Avoid 2 matching blocks next to each other
+					else if (blockIdx == prevBlockIdx)
+					{
+						blockIdx = (blockIdx + 1) % currentBlockTypes;
+						// Debug.Log("Changed col "+wrappedCol+"'s blockID from "+gBlockPrefabsSolid[prevBlockIdx]+" to "+gBlockPrefabsSolid[blockIdx]+" (matched block next to it)");
+					}
 
-				prevBlockIdx = blockIdx;
+					// Create block
+					blocks[BlockIdx(wrappedCol, rows)] = GetNewBlock(blockIdx, wrappedCol, rows);
+
+					prevBlockIdx = blockIdx;
+				}
 			}
 		}
 		

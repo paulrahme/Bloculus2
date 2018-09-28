@@ -38,6 +38,7 @@ public partial class GameMaster : MonoBehaviour
 	float scoreDifficultyMult;
 
 	bool IsPlayerBarFull() { return (playerBarValue >= playerBarCapacity); }
+	public bool IsGameOver { get { return (gameState == GameStates.GameOver); } }
 
 	/// <summary> Singleton instance </summary>
 	public static GameMaster instance;
@@ -107,10 +108,6 @@ public partial class GameMaster : MonoBehaviour
 
 //			LevelComplete();
 		}
-
-#if UNITY_EDITOR
-		HandleScreenshotKey();
-#endif
 	}
 
 	/// <summary> Changes to a new Game State </summary>
@@ -233,12 +230,13 @@ public partial class GameMaster : MonoBehaviour
 	}
 
 	/// <summary> Restarts with the previous settings </summary>
-	void ReplayGame()
+	public void RestartGame()
 	{
 		ResetScore();
 		gameMode.GameHasBegun();
 		for (int i = 0; i < towers.Length; ++i)
 			towers[i].ReplayGame();
+		UnpauseGame();
 	}
 
 	/// <summary> Pauses the gameplay </summary>
@@ -263,6 +261,7 @@ public partial class GameMaster : MonoBehaviour
 	public void GameOver()
 	{
 		Environment.instance.GameOver();
+		UIMaster.instance.GameOver();
 		gameState = GameStates.GameOver;
 	}
 
@@ -338,18 +337,4 @@ public partial class GameMaster : MonoBehaviour
 		Environment.instance.flowerOfLife.SetMaxActiveMaterials(Mathf.FloorToInt(level));
 		Environment.instance.groundController.SetScrollSpeed(_progressThroughAllLevels);
 	}
-
-#if UNITY_EDITOR
-	/// <summary> Handles debug key/s for saving screenshots </summary>
-	void HandleScreenshotKey()
-	{
-		// Save screenshot
-		if (Input.GetKeyDown(KeyCode.S) && Input.GetKey(KeyCode.LeftShift))
-		{
-			string fileName = "Screenshots/" + Screen.width + "x" + Screen.height + "_" + System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm_ss") + ".png";
-			ScreenCapture.CaptureScreenshot(fileName);
-			Debug.Log("Saved screenshot '" + fileName + "'");
-		}
-	}
-#endif
 }
