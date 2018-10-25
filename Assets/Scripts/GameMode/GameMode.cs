@@ -2,7 +2,7 @@
 
 public abstract class GameMode : MonoBehaviour
 {
-	public enum GameModeTypes { Original, Arcade, TimeChallenge, SpeedChallenge, ScoreChallenge, PVPLocal };
+	public enum GameModeTypes { Original, Arcade, TimeChallenge, SpeedChallenge, ScoreChallenge, PVPLocal_Continuous, PVPLocal_Race };
 	public abstract GameModeTypes GameModeType { get; }
 	public abstract int NumTowers { get; }
 	public virtual bool AlwaysStartOnLevel1 { get { return false; } }

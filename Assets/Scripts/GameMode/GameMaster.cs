@@ -134,9 +134,10 @@ public partial class GameMaster : MonoBehaviour
 	{
 		switch (_gameModeType)
 		{
-			case GameMode.GameModeTypes.Original:	gameMode = gameObject.AddComponent<GameModeOriginal>();		break;
-			case GameMode.GameModeTypes.Arcade:		gameMode = gameObject.AddComponent<GameModeArcade>();		break;
-			case GameMode.GameModeTypes.PVPLocal:	gameMode = gameObject.AddComponent<GameModePVP>();			break;
+			case GameMode.GameModeTypes.Original:				gameMode = gameObject.AddComponent<GameModeOriginal>();			break;
+			case GameMode.GameModeTypes.Arcade:					gameMode = gameObject.AddComponent<GameModeArcade>();			break;
+			case GameMode.GameModeTypes.PVPLocal_Continuous:	gameMode = gameObject.AddComponent<GameModePVPContinuous>();	break;
+			case GameMode.GameModeTypes.PVPLocal_Race:			gameMode = gameObject.AddComponent<GameModePVPRace>();			break;
 
 			default: throw new UnityException("Unhandled Game Mode Type " + _gameModeType);
 		}

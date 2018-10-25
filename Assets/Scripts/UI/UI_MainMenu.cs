@@ -18,8 +18,13 @@ public class UI_MainMenu : MonoBehaviour
 		StartGameMode(GameMode.GameModeTypes.Arcade);
 	}
 
-	public void StartGameMode_PVPLocal()
+	public void StartGameMode_PVPLocalContinuous()
 	{
-		StartGameMode(GameMode.GameModeTypes.PVPLocal);
+		StartGameMode(GameMode.GameModeTypes.PVPLocal_Continuous);
+	}
+
+	public void StartGameMode_PVPLocalRace()
+	{
+		StartGameMode(GameMode.GameModeTypes.PVPLocal_Race);
 	}
 }

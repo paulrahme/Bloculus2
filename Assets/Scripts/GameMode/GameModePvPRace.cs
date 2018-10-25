@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 
-public class GameModePVP : GameMode
+public class GameModePVPRace : GameMode
 {
-	public override GameModeTypes GameModeType { get { return GameModeTypes.PVPLocal; } }
+	public override GameModeTypes GameModeType { get { return GameModeTypes.PVPLocal_Race; } }
 	public override int NumTowers { get { return 2; } }
 /*
 	public override void Init()
