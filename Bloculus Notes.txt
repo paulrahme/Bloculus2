@@ -1,0 +1,18 @@
+Bloculus Notes
+
+Common:
+- Menu screen for game type (eg. continuous / race) and controllers (gamepad keyboard etc)
+- Think about what to do with / in place of ring progress bar
+
+Single player:
+
+
+Multiplayer:
+- Faster paced
+- Reverse controls
+- Freeze controls
+- Speed up other player while slowing down / freezing own tower
+- 2 game modes - continuous, race to finish stages
+- Show score per level and total score
+- Powerups with numbers in, only play effect when you get that combo
+- Spawn bricks on other player's tower with number, need to do combos to break
