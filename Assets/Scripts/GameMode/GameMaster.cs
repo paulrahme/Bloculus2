@@ -3,8 +3,7 @@ using UnityEngine;
 
 public partial class GameMaster : MonoBehaviour
 {
-	enum ControllerTypes { KeyboardWASD, KeyboardArrows, Gamepad, Touchscreen };
-	readonly ControllerTypes[] controllerTypes = { ControllerTypes.KeyboardWASD, ControllerTypes.KeyboardArrows };
+	public enum ControllerTypes { KeyboardWASD, KeyboardArrows, Gamepad, Touchscreen };
 	enum GameStates { Menu, PreGame, Gameplay, Paused, GameOver };
 
 	#region Inspector variables
@@ -22,8 +21,9 @@ public partial class GameMaster : MonoBehaviour
 	[SerializeField] int levelMin = 1;
 	[SerializeField] int levelMax = 33;
 
-	#endregion	// Inspector variables
+	#endregion   // Inspector variables
 
+	ControllerTypes[] controllerTypes = { ControllerTypes.KeyboardWASD, ControllerTypes.KeyboardArrows };
 	GameMode gameMode;
 	GameStates gameState;
 	Tower[] towers;
@@ -49,6 +49,8 @@ public partial class GameMaster : MonoBehaviour
 		if (instance != null)
 			throw new UnityException("Singleton instance already exists");
 		instance = this;
+
+		Load();
 
 		UnityEngine.SceneManagement.SceneManager.LoadScene("UI", UnityEngine.SceneManagement.LoadSceneMode.Additive);
 	}
@@ -104,9 +106,53 @@ public partial class GameMaster : MonoBehaviour
 			// Ensure player bar has not overflowed
 			playerBarValue = playerBarCapacity;
 
-//			LevelComplete();
+			//			LevelComplete();
 		}
 	}
+
+	#region Player controls
+
+	public ControllerTypes GetPlayerControls(int _playerIdx)
+	{
+		return controllerTypes[_playerIdx];
+	}
+
+	public ControllerTypes ChangePlayerControls(int _playerIdx)
+	{
+		ControllerTypes controllerType = controllerTypes[_playerIdx];
+		ControllerTypes prevType = controllerType;
+		int controlCount = Enum.GetValues(typeof(ControllerTypes)).Length;
+		bool finished = false;
+		while (!finished)
+		{
+			// Increment with wraparound
+			++controllerType;
+			if ((int)controllerType == controlCount)
+				controllerType = (ControllerTypes)0;
+
+			finished = true;
+			// If rolled back around to same value, give up
+			if (controllerType != prevType)
+			{
+				// Check no other player has the same control type
+				for (int i = 0; i < controllerTypes.Length; ++i)
+				{
+					finished &= (controllerTypes[i] != controllerType);
+				}
+
+				// Found a valid one
+				if (finished)
+				{
+					controllerTypes[_playerIdx] = controllerType;
+					SaveControllerTypes();
+				}
+			}
+		}
+
+		return controllerType;
+	}
+
+	#endregion // Player controls
 
 	/// <summary> Changes to a new Game State </summary>
 	/// <param name="_gameState"> GameStates.* state to set </param>
@@ -220,7 +266,7 @@ public partial class GameMaster : MonoBehaviour
 			scores[i].Score = 0;
 		ResetPlayerBar();
 	}
-	
+
 	/// <summary> Gets the current progress through all levels </summary>
 	/// <returns> Level progress between from 0 to 1 </returns>
 	public float GetProgressThroughLevels(bool _capTo1 = false)
@@ -320,7 +366,7 @@ public partial class GameMaster : MonoBehaviour
 
 			levelInt = Mathf.FloorToInt(level);
 		}
-	
+
 		// Add to the player's progress bar
 		if (gameMode.HasRingBar)
 			++playerBarValue;
@@ -343,4 +389,28 @@ public partial class GameMaster : MonoBehaviour
 		Environment.instance.flowerOfLife.SetMaxActiveMaterials(Mathf.FloorToInt(level));
 		Environment.instance.groundController.SetScrollSpeed(_progressThroughAllLevels);
 	}
+
+	#region Saving & Loading
+
+	const string ppPlayerControlsPrefix = "PlayerControls";
+
+	/// <summary> Loads everything from PlayerPrefs </summary>
+	void Load()
+	{
+		for (int i = 0; i < controllerTypes.Length; ++i)
+		{
+			if (PlayerPrefs.HasKey(ppPlayerControlsPrefix + i))
+				controllerTypes[i] = (ControllerTypes)PlayerPrefs.GetInt(ppPlayerControlsPrefix + i);
+		}
+	}
+
+	/// <summary> Saves player control preferences </summary>
+	void SaveControllerTypes()
+	{
+		for (int i = 0; i < controllerTypes.Length; ++i)
+			PlayerPrefs.SetInt(ppPlayerControlsPrefix + i, (int)controllerTypes[i]);
+		PlayerPrefs.Save();
+	}
+
+	#endregion
 }

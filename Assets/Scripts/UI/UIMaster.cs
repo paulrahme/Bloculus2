@@ -8,6 +8,7 @@ public class UIMaster : MonoBehaviour
 	public UI_HUD hud;
 	public UI_InGameMenu pauseMenu;
 	public UI_InGameMenu gameOverMenu;
+	public UI_PopupManager popups;
 	public Camera myCamera;
 	#endregion	// Inspector variables
 
@@ -67,12 +68,33 @@ public class UIMaster : MonoBehaviour
 		hud.SetGameplayElementsVisible(true);
 	}
 
+	/// <summary> Pops up the Quit confirmation dialog </summary>
+	public void ShowQuitConfirmation()
+	{
+		popups.Show(new UI_PopupManager.PopupInfo()
+		{
+			_popupType = UI_PopupManager.PopupTypes.Default,
+			title = "Quit?",
+			messageBody = "Are you sure you want to close Bloculus?",
+			confirmText = "Quit",
+			cancelText = "Cancel",
+			confirmCallback = Quit,
+		});
+	}
+
 	/// <summary> Disables pause screen & quits back to main menu </summary>
-	public void Quit()
+	public void QuitToMainMenu()
 	{
 		hud.gameObject.SetActive(false);
 		pauseMenu.gameObject.SetActive(false);
 		gameOverMenu.gameObject.SetActive(false);
 		mainMenu.gameObject.SetActive(true);
+	}
+
+	/// <summary> Quits & closes the game </summary>
+	void Quit()
+	{
+		Debug.Log("Quit - Closing application!");
+		Application.Quit();
 	}
 }

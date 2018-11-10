@@ -18,6 +18,6 @@ public class UI_InGameMenu : MonoBehaviour
 	{
 		GameMaster.instance.UnpauseGame();
 		GameMaster.instance.QuitGame();
-		UIMaster.instance.Quit();
+		UIMaster.instance.QuitToMainMenu();
 	}
 }
