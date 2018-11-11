@@ -39,7 +39,7 @@ public class UI_Popup : MonoBehaviour
 		gameObject.SetActive(true);
 	}
 
-	/// <summary> Updates the animation </summary>
+	/// <summary> Updates the animation - called from the PopupManager's Update() </summary>
 	/// <param name="_scale"> Transform's scale </param>
 	public void UpdateAnim(float _scale)
 	{

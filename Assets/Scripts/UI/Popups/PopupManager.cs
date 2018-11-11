@@ -76,6 +76,21 @@ public class PopupManager : MonoBehaviour
 		}
 	}
 
+	/// <summary> Prepares dictionary of child popups </summary>
+	void InitChildPopups()
+	{
+		UI_Popup[] childPopups = GetComponentsInChildren<UI_Popup>(true);
+		for (int i = 0; i < childPopups.Length; ++i)
+		{
+			UI_Popup popup = childPopups[i];
+			popup.parentManager = this;
+			popups.Add(popup.popupType, popup);
+			popup.gameObject.SetActive(false);
+		}
+	}
+
+	#region Public interface
+
 	/// <summary> Populates & shows the specified popup </summary>
 	/// <param name="_popupInfo"> Info of popup to show and its contents </param>
 	public void Show(PopupInfo _popupInfo)
@@ -93,19 +108,6 @@ public class PopupManager : MonoBehaviour
 		state = States.PoppingUp;
 	}
 
-	/// <summary> Prepares dictionary of child popups </summary>
-	void InitChildPopups()
-	{
-		UI_Popup[] childPopups = GetComponentsInChildren<UI_Popup>(true);
-		for (int i = 0; i < childPopups.Length; ++i)
-		{
-			UI_Popup popup = childPopups[i];
-			popup.parentManager = this;
-			popups.Add(popup.popupType, popup);
-			popup.gameObject.SetActive(false);
-		}
-	}
-
 	/// <summary> Called from the child popup being dismissed </summary>
 	public void PopupDismissed(Action _dismissCallback)
 	{
@@ -116,4 +118,6 @@ public class PopupManager : MonoBehaviour
 
 		state = States.Dismissing;
 	}
+
+	#endregion // Public interface
 }
