@@ -7,7 +7,7 @@ public class UI_Popup : MonoBehaviour
 	#region Inspector variables
 
 	[Header("ID")]
-	public UI_PopupManager.PopupTypes popupType = UI_PopupManager.PopupTypes.Default;
+	public PopupManager.PopupTypes popupType = PopupManager.PopupTypes.Default;
 
 	[Header("Hierarchy")]
 	[SerializeField] Text title = null;
@@ -18,12 +18,16 @@ public class UI_Popup : MonoBehaviour
 	#endregion // Inspector variables
 
 	Action confirmCallback, cancelCallback;
-	internal UI_PopupManager parentManager;
+	internal PopupManager parentManager;
+	Transform myTrans;
 
 	/// <summary> Populates and enables the popup </summary>
 	/// <param name="_popupInfo"> Contents </param>
-	public void Show(UI_PopupManager.PopupInfo _popupInfo)
+	public void StartShowing(PopupManager.PopupInfo _popupInfo)
 	{
+		if (myTrans == null)
+			myTrans = transform;
+
 		title.text = _popupInfo.title;
 		messageBody.text = _popupInfo.messageBody;
 		confirmLabel.text = _popupInfo.confirmText;
@@ -31,31 +35,26 @@ public class UI_Popup : MonoBehaviour
 		confirmCallback = _popupInfo.confirmCallback;
 		cancelCallback = _popupInfo.cancelCalback;
 
+		UpdateAnim(0f);
 		gameObject.SetActive(true);
 	}
 
-	/// <summary> Disables the popup </summary>
-	public void Hide()
+	/// <summary> Updates the animation </summary>
+	/// <param name="_scale"> Transform's scale </param>
+	public void UpdateAnim(float _scale)
 	{
-		gameObject.SetActive(false);
-		parentManager.PopupDismissed();
+		myTrans.localScale = Helpers.vec3One * _scale;
 	}
 
 	/// <summary> Called from Button's OnClick event </summary>
 	public void OnConfirm()
 	{
-		if (confirmCallback != null)
-			confirmCallback();
-
-		Hide();
+		parentManager.PopupDismissed(confirmCallback);
 	}
 
 	/// <summary> Called from Button's OnClick event </summary>
 	public void OnCancel()
 	{
-		if (cancelCallback != null)
-			cancelCallback();
-
-		Hide();
+		parentManager.PopupDismissed(cancelCallback);
 	}
 }

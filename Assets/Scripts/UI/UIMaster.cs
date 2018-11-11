@@ -8,7 +8,7 @@ public class UIMaster : MonoBehaviour
 	public UI_HUD hud;
 	public UI_InGameMenu pauseMenu;
 	public UI_InGameMenu gameOverMenu;
-	public UI_PopupManager popups;
+	public PopupManager popups;
 	public Camera myCamera;
 	#endregion	// Inspector variables
 
@@ -71,9 +71,9 @@ public class UIMaster : MonoBehaviour
 	/// <summary> Pops up the Quit confirmation dialog </summary>
 	public void ShowQuitConfirmation()
 	{
-		popups.Show(new UI_PopupManager.PopupInfo()
+		popups.Show(new PopupManager.PopupInfo()
 		{
-			_popupType = UI_PopupManager.PopupTypes.Default,
+			_popupType = PopupManager.PopupTypes.Default,
 			title = "Quit?",
 			messageBody = "Are you sure you want to close Bloculus?",
 			confirmText = "Quit",
