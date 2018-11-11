@@ -1,7 +1,7 @@
 Bloculus Notes
 
 Common:
-- Menu screen for game type (eg. continuous / race) and controllers (gamepad keyboard etc)
+[DONE] Menu screen for game type (eg. continuous / race) and controllers (gamepad keyboard etc)
 - Think about what to do with / in place of ring progress bar
 
 Single player:

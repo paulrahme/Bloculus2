@@ -71,7 +71,7 @@ public class UIMaster : MonoBehaviour
 	/// <summary> Pops up the Quit confirmation dialog </summary>
 	public void ShowQuitConfirmation()
 	{
-		popups.Show(new PopupManager.PopupInfo()
+		popups.ShowOrEnqueue(new PopupManager.PopupInfo()
 		{
 			_popupType = PopupManager.PopupTypes.Default,
 			title = "Quit?",

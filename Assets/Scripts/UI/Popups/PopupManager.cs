@@ -33,6 +33,7 @@ public class PopupManager : MonoBehaviour
 	UI_Popup currentPopup;
 	float animSpeed, animProgress;
 	Action dismissCallback;
+	Queue<PopupInfo> queuedPopups = new Queue<PopupInfo>();
 
 	/// <summary> Called once per frame </summary>
 	void Update()
@@ -67,7 +68,10 @@ public class PopupManager : MonoBehaviour
 
 					currentPopup.gameObject.SetActive(false);
 					currentPopup = null;
-					state = States.Idle;
+					if (queuedPopups.Count > 0)
+						ShowNextPopup();
+					else
+						state = States.Idle;
 				}
 				break;
 
@@ -93,18 +97,27 @@ public class PopupManager : MonoBehaviour
 
 	/// <summary> Populates & shows the specified popup </summary>
 	/// <param name="_popupInfo"> Info of popup to show and its contents </param>
-	public void Show(PopupInfo _popupInfo)
+	public void ShowOrEnqueue(PopupInfo _popupInfo)
 	{
 		if (popups.Keys.Count == 0)
 			InitChildPopups();
 
-		animSpeed = 1f / showAnimDuration;
-		animProgress = 0f;
+		queuedPopups.Enqueue(_popupInfo);
 
-		currentPopup = popups[_popupInfo._popupType];
-		currentPopup.StartShowing(_popupInfo);
+		if (state == States.Idle)
+			ShowNextPopup();
+	}
+
+	void ShowNextPopup()
+	{
+		PopupInfo popupInfo = queuedPopups.Dequeue();
+		currentPopup = popups[popupInfo._popupType];
+		currentPopup.StartShowing(popupInfo);
 		gameObject.SetActive(true);
 
+		// Set state
+		animSpeed = 1f / showAnimDuration;
+		animProgress = 0f;
 		state = States.PoppingUp;
 	}
 
@@ -112,10 +125,10 @@ public class PopupManager : MonoBehaviour
 	public void PopupDismissed(Action _dismissCallback)
 	{
 		dismissCallback = _dismissCallback;
-		
+
+		// Set state
 		animSpeed = 1f / hideAnimDuration;
 		animProgress = 0f;
-
 		state = States.Dismissing;
 	}
 
