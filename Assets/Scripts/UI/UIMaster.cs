@@ -73,7 +73,7 @@ public class UIMaster : MonoBehaviour
 	{
 		popups.ShowOrEnqueue(new PopupManager.PopupInfo()
 		{
-			_popupType = PopupManager.PopupTypes.Default,
+			_popupType = PopupManager.PopupTypes.YesNo,
 			title = "Quit?",
 			messageBody = "Are you sure you want to close Bloculus?",
 			confirmText = "Quit",

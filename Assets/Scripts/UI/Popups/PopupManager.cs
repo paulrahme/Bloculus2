@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class PopupManager : MonoBehaviour
 {
-	public enum PopupTypes { Default }
+	public enum PopupTypes { Default, YesNo }
 	enum States { Idle, PoppingUp, PopupShown, Dismissing }
 
 	public class PopupInfo
@@ -15,22 +15,13 @@ public class PopupManager : MonoBehaviour
 		public string confirmText = "OK";
 		public string cancelText = "Cancel";
 		public Action confirmCallback = null;
-		public Action cancelCalback = null;
+		public Action cancelCallback = null;
 	}
-
-	#region Inspector variables
-
-	[Header("Popup Animation")]
-	[SerializeField] AnimationCurve showAnimCurve = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.5f, 1.1f), new Keyframe(0.8f, 0.95f), new Keyframe(1f, 1f));
-	[SerializeField] float showAnimDuration = 0.35f;
-	[SerializeField] AnimationCurve hideAnimCurve = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.2f, 1.2f), new Keyframe(1f, 0f));
-	[SerializeField] float hideAnimDuration = 0.25f;
-
-	#endregion // Inspector variables
 
 	States state = States.Idle;
 	Dictionary<PopupTypes, UI_Popup> popups = new Dictionary<PopupTypes, UI_Popup>();
 	UI_Popup currentPopup;
+	PopupInfo currentPopupInfo;
 	float animSpeed, animProgress;
 	Action dismissCallback;
 	Queue<PopupInfo> queuedPopups = new Queue<PopupInfo>();
@@ -51,7 +42,7 @@ public class PopupManager : MonoBehaviour
 					animProgress = 1f;
 					state = States.PopupShown;
 				}
-				currentPopup.UpdateAnim(showAnimCurve.Evaluate(animProgress));
+				currentPopup.UpdateShowAnim(animProgress);
 				break;
 
 			case States.PopupShown:
@@ -60,7 +51,7 @@ public class PopupManager : MonoBehaviour
 			case States.Dismissing:
 				animProgress += animSpeed * Time.deltaTime;
 				if (animProgress < 1f)
-					currentPopup.UpdateAnim(hideAnimCurve.Evaluate(animProgress));
+					currentPopup.UpdateHideAnim(animProgress);
 				else
 				{
 					if (dismissCallback != null)
@@ -108,15 +99,16 @@ public class PopupManager : MonoBehaviour
 			ShowNextPopup();
 	}
 
+	/// <summary> Populates the next popup and starts it animating in </summary>
 	void ShowNextPopup()
 	{
-		PopupInfo popupInfo = queuedPopups.Dequeue();
-		currentPopup = popups[popupInfo._popupType];
-		currentPopup.StartShowing(popupInfo);
+		currentPopupInfo = queuedPopups.Dequeue();
+		currentPopup = popups[currentPopupInfo._popupType];
+		currentPopup.StartShowing(currentPopupInfo);
 		gameObject.SetActive(true);
 
 		// Set state
-		animSpeed = 1f / showAnimDuration;
+		animSpeed = currentPopup.ShowAnimSpeed;
 		animProgress = 0f;
 		state = States.PoppingUp;
 	}
@@ -127,10 +119,13 @@ public class PopupManager : MonoBehaviour
 		dismissCallback = _dismissCallback;
 
 		// Set state
-		animSpeed = 1f / hideAnimDuration;
+		animSpeed = currentPopup.HideAnimSpeed;
 		animProgress = 0f;
 		state = States.Dismissing;
 	}
+
+	public void PopupConfirmed() { PopupDismissed(currentPopupInfo.confirmCallback); }
+	public void PopupCancelled() { PopupDismissed(currentPopupInfo.cancelCallback); }
 
 	#endregion // Public interface
 }
