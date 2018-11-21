@@ -2,7 +2,12 @@ Bloculus Notes
 
 Common:
 [DONE] Menu screen for game type (eg. continuous / race) and controllers (gamepad keyboard etc)
-- Think about what to do with / in place of ring progress bar
+- Add progress bars for player HUDs
+- Make progress bars + levels update per player
+- Make level progress speeds per GameMode, so it can be overridden (eg. made to go backwards etc)
+- Make level complete trigger from the player
+- Make game over trigger from the player (checked from GameMaster)
+
 
 Single player:
 
