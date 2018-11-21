@@ -6,10 +6,10 @@ public class UI_HUD : MonoBehaviour
 
 	[Header("Hierarchy")]
 	[SerializeField] GameObject pauseButtonHierarchy = null;
-	[SerializeField] Transform scoreContainer = null;
+	[SerializeField] Transform playerHUDContainer = null;
 
 	[Header("Prefabs")]
-	[SerializeField] UI_Score scorePrefab = null;
+	[SerializeField] UI_PlayerHUD playerHUDPrefab = null;
 
 	#endregion // Inspector variables
 
@@ -29,14 +29,14 @@ public class UI_HUD : MonoBehaviour
 
 	public void ClearScores()
 	{
-		while (scoreContainer.childCount > 0)
-			DestroyImmediate(scoreContainer.GetChild(0).gameObject);
+		while (playerHUDContainer.childCount > 0)
+			DestroyImmediate(playerHUDContainer.GetChild(0).gameObject);
 	}
 
-	public UI_Score AddScore(string _playerName)
+	public UI_PlayerHUD AddPlayerHUD(string _playerName, int _startingLevel)
 	{
-		UI_Score score = Instantiate(scorePrefab, scoreContainer);
-		score.Init(_playerName);
+		UI_PlayerHUD score = Instantiate(playerHUDPrefab, playerHUDContainer);
+		score.Init(_playerName, _startingLevel);
 		return score;
 	}
 }

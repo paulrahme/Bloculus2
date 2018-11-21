@@ -1,16 +1,21 @@
 ﻿using UnityEngine.UI;
 using UnityEngine;
 
-public class UI_Score : MonoBehaviour
+public class UI_PlayerHUD : MonoBehaviour
 {
 	#region Inspector variables
 
+	[Header("Score")]
 	[SerializeField] Text playerText = null;
 	[SerializeField] Text scoreText = null;
+
+	[Header("Level Progress")]
+	[SerializeField] Image progressBarFillImage = null;
 
 	#endregion // Inspector variables
 
 	int score;
+	float level;
 
 	/// <summary> Wrapper for keeping the score and UI text label in sync </summary>
 	public int Score
@@ -23,11 +28,24 @@ public class UI_Score : MonoBehaviour
 		}
 	}
 
+	/// <summary> Wrapper for keeping the score and UI text label in sync </summary>
+	public float Level
+	{
+		get { return level; }
+		set
+		{
+			level = value;
+			progressBarFillImage.fillAmount = level - (int)level;	// Progress bar shows fractional part
+		}
+	}
+
 	/// <summary> Initialises the UI </summary>
 	/// <param name="_playerName"> Player string to display </param>
-	public void Init(string _playerName)
+	/// <param name="_startingLevel"> Level to start on </param>
+	public void Init(string _playerName, int _startingLevel)
 	{
 		playerText.text = _playerName;
 		Score = 0;
+		Level = _startingLevel;
 	}
 }

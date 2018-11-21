@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 224822513983820838}
   - component: {fileID: 114331094160925902}
   m_Layer: 5
-  m_Name: Cnt_Scores
+  m_Name: Cnt_PlayerHUD
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -64,7 +64,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &114210318367336554
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -77,8 +77,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pauseButtonHierarchy: {fileID: 1094812248838560}
-  scoreContainer: {fileID: 224822513983820838}
-  scorePrefab: {fileID: 114362998128970366, guid: 85fde2ebab23649669fe380a6bfadfff,
+  playerHUDContainer: {fileID: 224822513983820838}
+  playerHUDPrefab: {fileID: 114362998128970366, guid: 85fde2ebab23649669fe380a6bfadfff,
     type: 2}
 --- !u!114 &114331094160925902
 MonoBehaviour:
@@ -303,8 +303,8 @@ RectTransform:
   m_Father: {fileID: 224102798917520850}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -100, y: 150}
+  m_SizeDelta: {x: -100, y: 0}
   m_Pivot: {x: 0.5, y: 1}

@@ -33,9 +33,8 @@ public partial class GameMaster : MonoBehaviour
 	int playerBarCapacity;
 	int playerBarValue;
 	public static System.Random randomGen = new System.Random();
-	float startingLevel;
 	float scoreDifficultyMult;
-	UI_Score[] scores;
+	UI_PlayerHUD[] playerHUDs;
 
 	bool IsPlayerBarFull() { return (playerBarValue >= playerBarCapacity); }
 	public bool IsGameOver { get { return (gameState == GameStates.GameOver); } }
@@ -86,14 +85,16 @@ public partial class GameMaster : MonoBehaviour
 			int scoreChainFromTower;
 			towers[i].UpdateTower(_dTime, out scoreChainFromTower);
 
+			UI_PlayerHUD playerHUD = playerHUDs[i];
+
 			// Add score, if any
 			if (scoreChainFromTower != 0)
 			{
 				int scoreThisFrame = 1 << scoreChainFromTower;
 				scoreThisFrame += Convert.ToInt32(Convert.ToSingle(scoreThisFrame) * scoreDifficultyMult);
-				scoreThisFrame += Convert.ToInt32(level * 3.0f / Convert.ToSingle(levelMax - levelMin));
+				scoreThisFrame += Convert.ToInt32(playerHUD.Level * 3.0f / Convert.ToSingle(levelMax - levelMin));
 				scoreThisFrame *= 10;
-				scores[i].Score += scoreThisFrame;
+				playerHUD.Score += scoreThisFrame;
 			}
 		}
 
@@ -200,8 +201,9 @@ public partial class GameMaster : MonoBehaviour
 		TowerCamera.instance.SetLayout(viewLayout);
 		GroundController.instance.SetLayout(viewLayout);
 		UIMaster.instance.hud.ClearScores();
-		scores = new UI_Score[gameMode.NumTowers];
+		playerHUDs = new UI_PlayerHUD[gameMode.NumTowers];
 		towers = new Tower[gameMode.NumTowers];
+		int startingLevel = (gameMode.AlwaysStartOnLevel1 ? 1 : PlayerPrefs.GetInt(Constants.ppStartingLevel, 1));
 
 		for (int i = 0; i < towers.Length; ++i)
 		{
@@ -234,12 +236,11 @@ public partial class GameMaster : MonoBehaviour
 					throw new UnityException("Unhandled Controller Type " + controllerTypes[i]);
 			}
 
-			scores[i] = UIMaster.instance.hud.AddScore("Player " + (i + 1));
+			playerHUDs[i] = UIMaster.instance.hud.AddPlayerHUD("Player " + (i + 1), startingLevel);
 			towers[i] = tower;
 		}
 
-		levelIncreaseRate = gameMode.LevelIncreaseRate;
-		SetStartingLevel(gameMode.AlwaysStartOnLevel1 ? 1 : PlayerPrefs.GetInt(Constants.ppStartingLevel, 1));
+		SetStartingLevel(startingLevel);
 		SetNewLevel(0.0f, true);
 
 		SetGameState(GameStates.Gameplay);
@@ -249,12 +250,11 @@ public partial class GameMaster : MonoBehaviour
 	/// <param name='level'> New level to start game on </param>
 	public void SetStartingLevel(int _level)
 	{
-		startingLevel = _level;
-		level = startingLevel;
-		levelInt = Mathf.FloorToInt(startingLevel);
+		// startingLevel = _level;
+		level = _level;
 		for (int i = 0; i < towers.Length; ++i)
 			towers[i].RestoreSpeeds();
-		Environment.instance.UpdateBackground(level, levelMax, false);
+		Environment.instance.UpdateBackground(_level, levelMax, false);
 	}
 
 	#region Scoring
@@ -262,8 +262,8 @@ public partial class GameMaster : MonoBehaviour
 	/// <summary> Resets the score & the player's progress </summary>
 	void ResetScores()
 	{
-		for (int i = 0; i < scores.Length; ++i)
-			scores[i].Score = 0;
+		for (int i = 0; i < playerHUDs.Length; ++i)
+			playerHUDs[i].Score = 0;
 		ResetPlayerBar();
 	}
 
@@ -351,7 +351,10 @@ public partial class GameMaster : MonoBehaviour
 	/// <param name='_dTime'> Time elapsed since last Update() </param>
 	void UpdateLevelProgress(float _dTime)
 	{
-		level += levelIncreaseRate * _dTime;
+		float levelChange = gameMode.LevelIncreaseRate * _dTime;
+
+		for (int i = 0; i < playerHUDs.Length; ++i)
+			playerHUDs[i].Level += levelChange;
 
 		// Has level just changed?
 		if (Mathf.FloorToInt(level) != levelInt)
