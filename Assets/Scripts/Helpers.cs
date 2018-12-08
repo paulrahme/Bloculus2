@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections.Generic;
+using System.Text;
 
 public class Helpers
 {
@@ -100,5 +102,26 @@ public class Helpers
 		_trans.parent = _parent;
 		_trans.localPosition = _trans.localEulerAngles = vec3Zero;
 		_trans.localScale = vec3One;
+	}
+
+	/// <summary> Recursively gets the full name in the hierarchy </summary>
+	/// <param name="_transform"> (Final child) transform </param>
+	public static string GetFullName(Transform _transform)
+	{
+		Stack<string> names = new Stack<string>();
+
+		while (_transform != null)
+		{
+			names.Push(_transform.name);
+			_transform = _transform.parent;
+		}
+
+		StringBuilder sb = new StringBuilder();
+		if (names.Count > 0)
+			sb.Append(names.Pop());
+		while (names.Count > 0)
+			sb.Append("/").Append(names.Pop());
+
+		return sb.ToString();
 	}
 }
