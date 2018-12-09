@@ -2,9 +2,11 @@ Bloculus Notes
 
 Common:
 [DONE] Menu screen for game type (eg. continuous / race) and controllers (gamepad keyboard etc)
-- Add progress bars for player HUDs
-- Make progress bars + levels update per player
-- Make level progress speeds per GameMode, so it can be overridden (eg. made to go backwards etc)
+[DONE] PopupManager, advanced Button functionality
+[DONE] UI Audio
+[DONE] Add progress bars for player HUDs
+[DONE] Make level progress speeds per GameMode, so it can be overridden (eg. made to go backwards etc)
+[DONE] Rewrite level progress to update per player
 - Make level complete trigger from the player
 - Make game over trigger from the player (checked from GameMaster)
 

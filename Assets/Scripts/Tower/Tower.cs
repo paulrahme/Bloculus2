@@ -136,9 +136,9 @@ public partial class Tower : MonoBehaviour
 	}
 
 	/// <summary> Resets the current speed values to their starting values </summary>
-	public void RestoreSpeeds()
+	public void RestoreSpeeds(float _progressThroughAllLevels, bool _resetTower)
 	{
-		SetNewLevel(GameMaster.instance.GetProgressThroughLevels(), false);
+		SetNewLevel(_progressThroughAllLevels, false);
 		newBlockTimer = newBlockAppearRate;
 	}
 	
@@ -274,11 +274,11 @@ public partial class Tower : MonoBehaviour
 	}
 	
 	/// <summary> Restarts with the previous settings </summary>
-	public void ReplayGame()
+	public void ReplayGame(float _progressThroughAllLevels)
 	{
 		ClearAllBlocks();
 		ClearSpawnedEffects();
-		RestoreSpeeds();
+		RestoreSpeeds(_progressThroughAllLevels, true);
 		CreateRandomBlocks();
 	}
 

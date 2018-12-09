@@ -54,9 +54,8 @@ public class Environment : MonoBehaviour
 
 	/// <summary> Changes the background to match the level </summary>
 	/// <param name="_level"> Level numer </param>
-	/// <param name="_levelMax"> Highest level </param>
 	/// <returns> The index of the group of levels this one is in </returns>
-	public int SetBackground(float _level, float _levelMax)
+	public int SetBackground(float _level)
 	{
 		float progress;
 		int levelGroup;
@@ -75,7 +74,7 @@ public class Environment : MonoBehaviour
 			progress = (_level - 16.0f) / 8.0f;
 			levelGroup = 2;
 		}
-		else if (_level < _levelMax)
+		else if (_level < GameMaster.instance.levelMax)
 		{
 			progress = (_level - 24.0f) / 8.0f;
 			levelGroup = 3;
@@ -95,9 +94,9 @@ public class Environment : MonoBehaviour
 
 	/// <summary> Updates the background colour, texture etc. </summary>
 	/// <param name="_changeMusic"> When true, change background music as necessary </param>
-	public void UpdateBackground(float _level, float _levelMax, bool _changeMusic)
+	public void UpdateBackground(float _level, bool _changeMusic)
 	{
-		int musicIdx = SetBackground(_level, _levelMax);
+		int musicIdx = SetBackground(_level);
 		if (_changeMusic)
 			musicController.StartGameMusic(musicIdx);
 
@@ -123,7 +122,7 @@ public class Environment : MonoBehaviour
 		audioSource.PlayOneShot(levelEndedAudio);
 	}
 
-	public void LevelUp()
+	public void PlayLevelUpAudio()
 	{
 		audioSource.PlayOneShot(levelUpAudio);
 	}

@@ -16,28 +16,22 @@ public partial class GameMaster : MonoBehaviour
 	[SerializeField] ViewLayout viewLayout2Towers = null;
 
 	[Header("Level tuning")]
-	[SerializeField] int ringFillCapacityMin = 45;
-	[SerializeField] int ringFillCapacityMax = 150;
-	[SerializeField] int levelMin = 1;
-	[SerializeField] int levelMax = 33;
+	public int levelMax = 33;
 
 	#endregion   // Inspector variables
+
+	#region Non-inspector variables + properties
 
 	ControllerTypes[] controllerTypes = { ControllerTypes.KeyboardWASD, ControllerTypes.KeyboardArrows };
 	GameMode gameMode;
 	GameStates gameState;
-	Tower[] towers;
-	float level;
-	int levelInt;
+	Player[] players;
 	float levelIncreaseRate;
-	int playerBarCapacity;
-	int playerBarValue;
 	public static System.Random randomGen = new System.Random();
-	float scoreDifficultyMult;
-	UI_PlayerHUD[] playerHUDs;
 
-	bool IsPlayerBarFull() { return (playerBarValue >= playerBarCapacity); }
 	public bool IsGameOver { get { return (gameState == GameStates.GameOver); } }
+
+	#endregion // Non-inspector variables + properties
 
 	/// <summary> Singleton instance </summary>
 	public static GameMaster instance;
@@ -68,8 +62,6 @@ public partial class GameMaster : MonoBehaviour
 		switch (gameState)
 		{
 			case GameStates.Gameplay: UpdateGameplay(dTime); break;
-
-			default: break;
 		}
 	}
 
@@ -77,41 +69,29 @@ public partial class GameMaster : MonoBehaviour
 	/// <param name='_dTime'> Time elapsed since last Update() </param>
 	void UpdateGameplay(float _dTime)
 	{
-		UpdateLevelProgress(_dTime);
-
-		// Update tower/s
-		for (int i = 0; i < towers.Length; ++i)
+		// Update each player/tower
+		for (int i = 0; i < players.Length; ++i)
 		{
+			// Update the level
+			UI_PlayerHUD playerHUD = players[i].hud;
+			playerHUD.UpdateLevelProgress(gameMode.LevelProgressRate * _dTime);
+
+			// Update the tower
 			int scoreChainFromTower;
-			towers[i].UpdateTower(_dTime, out scoreChainFromTower);
+			players[i].tower.UpdateTower(_dTime, out scoreChainFromTower);
 
-			UI_PlayerHUD playerHUD = playerHUDs[i];
-
-			// Add score, if any
+			// Add score from tower, if any
 			if (scoreChainFromTower != 0)
-			{
-				int scoreThisFrame = 1 << scoreChainFromTower;
-				scoreThisFrame += Convert.ToInt32(Convert.ToSingle(scoreThisFrame) * scoreDifficultyMult);
-				scoreThisFrame += Convert.ToInt32(playerHUD.Level * 3.0f / Convert.ToSingle(levelMax - levelMin));
-				scoreThisFrame *= 10;
-				playerHUD.Score += scoreThisFrame;
-			}
+				playerHUD.AddScore(1 << scoreChainFromTower);
 		}
 
 		// Update ground
 		Environment.instance.UpdateEffects(_dTime);
-
-		// Check for level complete
-		if (IsPlayerBarFull())
-		{
-			// Ensure player bar has not overflowed
-			playerBarValue = playerBarCapacity;
-
-			//			LevelComplete();
-		}
 	}
 
 	#region Player controls
+
+	#region Game states
 
 	public ControllerTypes GetPlayerControls(int _playerIdx)
 	{
@@ -190,104 +170,89 @@ public partial class GameMaster : MonoBehaviour
 		}
 
 		ViewLayout viewLayout;
-		switch (gameMode.NumTowers)
+		switch (gameMode.NumPlayers)
 		{
 			case 1: viewLayout = viewLayout1Tower; break;
 			case 2: viewLayout = viewLayout2Towers; break;
 
-			default: throw new UnityException("Unhandled tower layout for '" + gameMode.NumTowers + "' towers");
+			default: throw new UnityException("Unhandled tower layout for '" + gameMode.NumPlayers + "' towers");
 		}
 
 		TowerCamera.instance.SetLayout(viewLayout);
 		GroundController.instance.SetLayout(viewLayout);
 		UIMaster.instance.hud.ClearScores();
-		playerHUDs = new UI_PlayerHUD[gameMode.NumTowers];
-		towers = new Tower[gameMode.NumTowers];
+		players = new Player[gameMode.NumPlayers];
 		int startingLevel = (gameMode.AlwaysStartOnLevel1 ? 1 : PlayerPrefs.GetInt(Constants.ppStartingLevel, 1));
 
-		for (int i = 0; i < towers.Length; ++i)
+		for (int i = 0; i < players.Length; ++i)
 		{
-			Tower tower = Instantiate(towerPrefab);
-			tower.basePosition = viewLayout.towerPositions[i];
+			Tower newTower = Instantiate(towerPrefab);
+			newTower.basePosition = viewLayout.towerPositions[i];
 
 			switch (controllerTypes[i])
 			{
 				case ControllerTypes.KeyboardWASD:
 					{
-						TowerControlKeyboard controller = tower.gameObject.AddComponent<TowerControlKeyboard>();
-						tower.controller = controller;
+						TowerControlKeyboard controller = newTower.gameObject.AddComponent<TowerControlKeyboard>();
+						newTower.controller = controller;
 						controller.Init(KeyCode.A, KeyCode.D, KeyCode.W, KeyCode.S, KeyCode.Space);
 					}
 					break;
 
 				case ControllerTypes.KeyboardArrows:
 					{
-						TowerControlKeyboard controller = tower.gameObject.AddComponent<TowerControlKeyboard>();
-						tower.controller = controller;
+						TowerControlKeyboard controller = newTower.gameObject.AddComponent<TowerControlKeyboard>();
+						newTower.controller = controller;
 						controller.Init(KeyCode.LeftArrow, KeyCode.RightArrow, KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.Return);
 					}
 					break;
 
 				case ControllerTypes.Gamepad:
-					tower.controller = tower.gameObject.AddComponent<TowerControlGamepad>();
+					newTower.controller = newTower.gameObject.AddComponent<TowerControlGamepad>();
 					break;
 
 				default:
 					throw new UnityException("Unhandled Controller Type " + controllerTypes[i]);
 			}
 
-			playerHUDs[i] = UIMaster.instance.hud.AddPlayerHUD("Player " + (i + 1), startingLevel);
-			towers[i] = tower;
+			players[i] = new Player(controllerTypes[i], newTower, UIMaster.instance.hud.AddPlayerHUD("Player " + (i + 1), startingLevel));
 		}
 
 		SetStartingLevel(startingLevel);
-		SetNewLevel(0.0f, true);
+		SetNewLevel(0, true);
 
 		SetGameState(GameStates.Gameplay);
 	}
 
+	/// <summary> Sets the speeds & tower layout </summary>
+	/// <param name='_level'> New level to set </param>
+	/// <param name="_resetTowers"> True to reset towers, false to leave them as is </param>
+	public void SetNewLevel(int _level, bool _resetTowers)
+	{
+		for (int i = 0; i < players.Length; ++i)
+			players[i].SetLevel(_level, _resetTowers);
+
+		// Update background effects
+		Environment.instance.flowerOfLife.SetMaxActiveMaterials(Mathf.FloorToInt(players[0].hud.LevelInt));
+		Environment.instance.groundController.SetScrollSpeed(_level);
+	}
+
 	/// <summary> Sets the starting level and adjusts game speeds accordingly </summary>
-	/// <param name='level'> New level to start game on </param>
+	/// <param name='_level'> New level to start game on </param>
 	public void SetStartingLevel(int _level)
 	{
-		// startingLevel = _level;
-		level = _level;
-		for (int i = 0; i < towers.Length; ++i)
-			towers[i].RestoreSpeeds();
-		Environment.instance.UpdateBackground(_level, levelMax, false);
+		for (int i = 0; i < players.Length; ++i)
+			players[i].SetLevel(_level);
+
+		Environment.instance.UpdateBackground(_level, false);
 	}
-
-	#region Scoring
-
-	/// <summary> Resets the score & the player's progress </summary>
-	void ResetScores()
-	{
-		for (int i = 0; i < playerHUDs.Length; ++i)
-			playerHUDs[i].Score = 0;
-		ResetPlayerBar();
-	}
-
-	/// <summary> Gets the current progress through all levels </summary>
-	/// <returns> Level progress between from 0 to 1 </returns>
-	public float GetProgressThroughLevels(bool _capTo1 = false)
-	{
-		float progress = ((level - Convert.ToSingle(levelMin)) / Convert.ToSingle(levelMax - levelMin));
-
-		if (_capTo1 && (progress > 1f))
-			progress = 1f;
-
-		return progress;
-	}
-
-	#endregion // Scoring
 
 	/// <summary> Restarts with the previous settings </summary>
 	public void RestartGame()
 	{
-		ResetScores();
 		gameMode.GameHasBegun();
-		for (int i = 0; i < towers.Length; ++i)
-			towers[i].ReplayGame();
+		for (int i = 0; i < players.Length; ++i)
+			players[i].ReplayGame();
 		UnpauseGame();
 	}
 
@@ -320,78 +285,16 @@ public partial class GameMaster : MonoBehaviour
 	/// <summary> Destroys all towers and resets game state </summary>
 	public void QuitGame()
 	{
-		for (int i = 0; i < towers.Length; ++i)
-		{
-			Tower tower = towers[i];
-			Destroy(tower.gameObject);
-		}
-		towers = null;
+		for (int i = 0; i < players.Length; ++i)
+			players[i].OnDestroy();
+
+		players = null;
 		RecyclePool.ClearAllPools();
 
 		gameState = GameStates.Menu;
 	}
 
-	/// <summary> Resets the player's progress bar </summary>
-	void ResetPlayerBar()
-	{
-		playerBarValue = 0;
-	}
-
-	/// <summary> Triggers the "Level up" fading text </summary>
-	/// <param name='_playSound'> True to play the "level up" sound </param>
-	void QuickLevelUp(bool _playSound = true)
-	{
-		if (_playSound)
-			Environment.instance.LevelUp();
-
-		Environment.instance.UpdateBackground(level, levelMax, true);
-	}
-
-	/// <summary> Updates the gradual level increase, reacting if the level has been completed </summary>
-	/// <param name='_dTime'> Time elapsed since last Update() </param>
-	void UpdateLevelProgress(float _dTime)
-	{
-		float levelChange = gameMode.LevelIncreaseRate * _dTime;
-
-		for (int i = 0; i < playerHUDs.Length; ++i)
-			playerHUDs[i].Level += levelChange;
-
-		// Has level just changed?
-		if (Mathf.FloorToInt(level) != levelInt)
-		{
-			// Update speeds & tower layout for next level
-			float levelPercent = GetProgressThroughLevels(true);
-			SetNewLevel(levelPercent, false);
-
-			// If it's in gameplay, trigger the "level complete" sequence
-			// if (!gFrontendMenuObject.activeSelf && !IsGameFrozen())
-			//	LevelComplete();
-
-			levelInt = Mathf.FloorToInt(level);
-		}
-
-		// Add to the player's progress bar
-		if (gameMode.HasRingBar)
-			++playerBarValue;
-	}
-
-	/// <summary> Sets the speeds & tower layout </summary>
-	/// <param name='_progressThroughAllLevels'> Speed scale: 0.0f = slowest, 1.0f = fastest </param>
-	/// <param name="_resetTowers"> True to reset towers, false to leave them as is </param>
-	public void SetNewLevel(float _progressThroughAllLevels, bool _resetTowers)
-	{
-		playerBarCapacity = ringFillCapacityMin + Convert.ToInt32(Convert.ToSingle(ringFillCapacityMax - ringFillCapacityMin) * _progressThroughAllLevels);
-
-		for (int i = 0; i < towers.Length; ++i)
-			towers[i].SetNewLevel(_progressThroughAllLevels, _resetTowers);
-
-		// Update score multiplier
-		scoreDifficultyMult = _progressThroughAllLevels;
-
-		// Update background effects
-		Environment.instance.flowerOfLife.SetMaxActiveMaterials(Mathf.FloorToInt(level));
-		Environment.instance.groundController.SetScrollSpeed(_progressThroughAllLevels);
-	}
+	#endregion // Game states
 
 	#region Saving & Loading
 
