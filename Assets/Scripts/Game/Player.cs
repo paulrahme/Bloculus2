@@ -1,17 +1,16 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Player
 {
-	public Tower tower;
 	public float ProgressThroughAllLevels { get; private set; }
 	public int Score { get; private set; }
 	public float Level { get; private set; }
 	public int LevelInt { get; private set; }
 
-	GameMaster.ControllerTypes controllerType;
-	UI_PlayerHUD hud;
 	string playerName;
+	GameMaster.ControllerTypes controllerType;
+	Tower tower;
+	UI_PlayerHUD hud;
 
 	/// <summary> Constructor </summary>
 	public Player(string _playerName, GameMaster.ControllerTypes _controllerType, Tower _towerPrefab, Vector3 _towerPosition, int _startingLevel)
