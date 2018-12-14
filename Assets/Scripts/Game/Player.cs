@@ -1,24 +1,26 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class Player
 {
-	public GameMaster.ControllerTypes controllerType;
 	public Tower tower;
-	public UI_PlayerHUD hud;
-	public string playerName;
+	public float ProgressThroughAllLevels { get; private set; }
+	public int Score { get; private set; }
+	public float Level { get; private set; }
+	public int LevelInt { get; private set; }
 
-	internal float ProgressThroughAllLevels { get; private set; }
-	internal int Score { get; private set; }
-	internal float Level { get; private set; }
-	internal int LevelInt { get; private set; }
+	GameMaster.ControllerTypes controllerType;
+	UI_PlayerHUD hud;
+	string playerName;
 
+	/// <summary> Constructor </summary>
 	public Player(string _playerName, GameMaster.ControllerTypes _controllerType, Tower _towerPrefab, Vector3 _towerPosition, int _startingLevel)
 	{
 		playerName = _playerName;
 		controllerType = _controllerType;
 
 		// Create tower
-		tower = Object.Instantiate(_towerPrefab);
+		tower = GameObject.Instantiate(_towerPrefab);
 		tower.basePosition = _towerPosition;
 
 		switch (controllerType)
@@ -63,8 +65,25 @@ public class Player
 	/// <summary> Destroy spawned elements </summary>
 	public void Destroy()
 	{
-		Object.Destroy(tower.gameObject);
-		Object.Destroy(hud.gameObject);
+		GameObject.Destroy(tower.gameObject);
+		GameObject.Destroy(hud.gameObject);
+	}
+
+	/// <summary> Called once per frame </summary>
+	/// <param name='_dTime'> Time elapsed since last frame </param>
+	/// <param name="_levelProgressRate"> How much to progress the level per second </param>
+	public void UpdateGameplay(float _dTime, float _levelProgressRate)
+	{
+		// Update the level
+		UpdateLevelProgress(_levelProgressRate * _dTime);
+
+		// Update the tower
+		int scoreChainFromTower;
+		tower.UpdateTower(_dTime, out scoreChainFromTower);
+
+		// Add score from tower, if any
+		if (scoreChainFromTower != 0)
+			AddScore(1 << scoreChainFromTower);
 	}
 
 	#region Score

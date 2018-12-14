@@ -71,19 +71,7 @@ public partial class GameMaster : MonoBehaviour
 	{
 		// Update each player/tower
 		for (int i = 0; i < players.Length; ++i)
-		{
-			// Update the level
-			Player player = players[i];
-			player.UpdateLevelProgress(gameMode.LevelProgressRate * _dTime);
-
-			// Update the tower
-			int scoreChainFromTower;
-			players[i].tower.UpdateTower(_dTime, out scoreChainFromTower);
-
-			// Add score from tower, if any
-			if (scoreChainFromTower != 0)
-				player.AddScore(1 << scoreChainFromTower);
-		}
+			players[i].UpdateGameplay(_dTime, gameMode.LevelProgressRate);
 
 		// Update ground
 		Environment.instance.UpdateEffects(_dTime);

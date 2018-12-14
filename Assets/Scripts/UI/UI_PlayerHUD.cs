@@ -14,7 +14,6 @@ public class UI_PlayerHUD : MonoBehaviour
 
 	#endregion // Inspector variables
 
-
 	/// <summary> Initialises the UI </summary>
 	/// <param name="_playerName"> Player string to display </param>
 	/// <param name="_startingLevel"> Level to start on </param>
