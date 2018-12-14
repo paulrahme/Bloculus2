@@ -27,16 +27,13 @@ public class UI_HUD : MonoBehaviour
 		GameMaster.instance.Pause();
 	}
 
-	public void ClearScores()
+	/// <summary> Adds a new HUD for this player, parented under the container </summary>
+	/// <param name="_playerName"> Player's name to display </param>
+	/// <returns> The UI_PlayerHUD created </returns>
+	public UI_PlayerHUD AddPlayerHUD(string _playerName)
 	{
-		while (playerHUDContainer.childCount > 0)
-			DestroyImmediate(playerHUDContainer.GetChild(0).gameObject);
-	}
-
-	public UI_PlayerHUD AddPlayerHUD(string _playerName, int _startingLevel)
-	{
-		UI_PlayerHUD score = Instantiate(playerHUDPrefab, playerHUDContainer);
-		score.Init(_playerName, _startingLevel);
-		return score;
+		UI_PlayerHUD hud = Instantiate(playerHUDPrefab, playerHUDContainer);
+		hud.Init(_playerName);
+		return hud;
 	}
 }

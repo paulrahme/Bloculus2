@@ -73,8 +73,8 @@ public partial class GameMaster : MonoBehaviour
 		for (int i = 0; i < players.Length; ++i)
 		{
 			// Update the level
-			UI_PlayerHUD playerHUD = players[i].hud;
-			playerHUD.UpdateLevelProgress(gameMode.LevelProgressRate * _dTime);
+			Player player = players[i];
+			player.UpdateLevelProgress(gameMode.LevelProgressRate * _dTime);
 
 			// Update the tower
 			int scoreChainFromTower;
@@ -82,7 +82,7 @@ public partial class GameMaster : MonoBehaviour
 
 			// Add score from tower, if any
 			if (scoreChainFromTower != 0)
-				playerHUD.AddScore(1 << scoreChainFromTower);
+				player.AddScore(1 << scoreChainFromTower);
 		}
 
 		// Update ground
@@ -180,43 +180,23 @@ public partial class GameMaster : MonoBehaviour
 
 		TowerCamera.instance.SetLayout(viewLayout);
 		GroundController.instance.SetLayout(viewLayout);
-		UIMaster.instance.hud.ClearScores();
-		players = new Player[gameMode.NumPlayers];
+
+		// Clear current players
+		if (players != null)
+		{
+			for (int i = 0; i < players.Length; ++i)
+			{
+				players[i].Destroy();
+				players[i] = null;
+			}
+		}
+
 		int startingLevel = (gameMode.AlwaysStartOnLevel1 ? 1 : PlayerPrefs.GetInt(Constants.ppStartingLevel, 1));
 
+		// Create new players
+		players = new Player[gameMode.NumPlayers];
 		for (int i = 0; i < players.Length; ++i)
-		{
-			Tower newTower = Instantiate(towerPrefab);
-			newTower.basePosition = viewLayout.towerPositions[i];
-
-			switch (controllerTypes[i])
-			{
-				case ControllerTypes.KeyboardWASD:
-					{
-						TowerControlKeyboard controller = newTower.gameObject.AddComponent<TowerControlKeyboard>();
-						newTower.controller = controller;
-						controller.Init(KeyCode.A, KeyCode.D, KeyCode.W, KeyCode.S, KeyCode.Space);
-					}
-					break;
-
-				case ControllerTypes.KeyboardArrows:
-					{
-						TowerControlKeyboard controller = newTower.gameObject.AddComponent<TowerControlKeyboard>();
-						newTower.controller = controller;
-						controller.Init(KeyCode.LeftArrow, KeyCode.RightArrow, KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.Return);
-					}
-					break;
-
-				case ControllerTypes.Gamepad:
-					newTower.controller = newTower.gameObject.AddComponent<TowerControlGamepad>();
-					break;
-
-				default:
-					throw new UnityException("Unhandled Controller Type " + controllerTypes[i]);
-			}
-
-			players[i] = new Player(controllerTypes[i], newTower, UIMaster.instance.hud.AddPlayerHUD("Player " + (i + 1), startingLevel));
-		}
+			players[i] = new Player("Player " + (i + 1), controllerTypes[i], towerPrefab, viewLayout.towerPositions[i], startingLevel);
 
 		SetStartingLevel(startingLevel);
 		SetNewLevel(0, true);
@@ -233,7 +213,7 @@ public partial class GameMaster : MonoBehaviour
 			players[i].SetLevel(_level, _resetTowers);
 
 		// Update background effects
-		Environment.instance.flowerOfLife.SetMaxActiveMaterials(Mathf.FloorToInt(players[0].hud.LevelInt));
+		Environment.instance.flowerOfLife.SetMaxActiveMaterials(Mathf.FloorToInt(players[0].LevelInt));
 		Environment.instance.groundController.SetScrollSpeed(_level);
 	}
 
@@ -286,7 +266,7 @@ public partial class GameMaster : MonoBehaviour
 	public void QuitGame()
 	{
 		for (int i = 0; i < players.Length; ++i)
-			players[i].OnDestroy();
+			players[i].Destroy();
 
 		players = null;
 		RecyclePool.ClearAllPools();

@@ -56,6 +56,9 @@ public class RecyclePool
 
 	public static void ClearAllPools()
 	{
+		if (pools == null)
+			return;
+		
 		for (int i = 0; i < pools.Length; ++i)
 		{
 			Stack<GameObject> pool = pools[i];
