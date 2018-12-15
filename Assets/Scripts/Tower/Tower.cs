@@ -27,20 +27,19 @@ public partial class Tower : MonoBehaviour
 	[SerializeField] AudioClip[]		selectorSwitchAudio = null;
 
 	[Header("Gameplay Tuning & Balancing")]
-	[SerializeField] float				towerRadius = 4.0f;
-	[SerializeField] float				rotateSpeed = 10.0f;
-	[SerializeField] float				minDistanceFromCamera = 3.0f;
-	[SerializeField] float				minCameraDistance = 6.0f;
-	[SerializeField] float				fallSpeedSlowest = 2.0f;
-	[SerializeField] float				fallSpeedFastest = 7.0f;
+	[SerializeField] float				towerRadius = 4f;
+	[SerializeField] float				rotateSpeed = 10f;
+	[SerializeField] float				minCameraDistance = -6f;
+	[SerializeField] float				fallSpeedSlowest = 2f;
+	[SerializeField] float				fallSpeedFastest = 7f;
 	[SerializeField] float				newBlockAppearRateSlowest = 4.5f;
-	[SerializeField] float				newBlockAppearRateFastest = 2.0f;
+	[SerializeField] float				newBlockAppearRateFastest = 2f;
 	[SerializeField] int				columnsMin = 10;
 	[SerializeField] int				columnsMax = 30;
 	[SerializeField] int				rowsMin = 5;
 	[SerializeField] int				rowsMax = 16;
 	[SerializeField] int				blockTypesMin = 4;
-	[SerializeField] float				selectorSwapAnimSpeed = 9.0f;
+	[SerializeField] float				selectorSwapAnimSpeed = 9f;
 
 	#endregion	// Inspector variables
 
@@ -116,7 +115,7 @@ public partial class Tower : MonoBehaviour
 	void Awake()
 	{
 		selectorAudioSource = selectorLeft.GetComponent<AudioSource>();
-		blockStyle = PlayerPrefs.GetInt(Constants.ppBlockStyle, 1);
+		blockStyle = PlayerPrefs.GetInt(Constants.PPKeys.BlockStyle.ToString(), 1);
 
 		PrepareObjectPools();
 
@@ -136,9 +135,13 @@ public partial class Tower : MonoBehaviour
 	}
 
 	/// <summary> Resets the current speed values to their starting values </summary>
-	public void RestoreSpeeds(float _progressThroughAllLevels, bool _resetTower)
+	public void RestoreSpeeds(int _level, bool _resetTower)
 	{
-		SetNewLevel(_progressThroughAllLevels, false);
+		float progressThroughAllLevels = ((_level - 1f) / (GameMaster.instance.levelMax - 1f));
+		if (progressThroughAllLevels > 1f)
+			progressThroughAllLevels = 1f;
+
+		SetNewLevel(progressThroughAllLevels, _resetTower);
 		newBlockTimer = newBlockAppearRate;
 	}
 	
@@ -147,7 +150,7 @@ public partial class Tower : MonoBehaviour
 	public void RefreshTower(bool _createRandomBlocks)
 	{
 		// Set distance away from the camera
-		transform.localPosition = new Vector3(basePosition.x, basePosition.y, basePosition.z + minDistanceFromCamera + columns);
+		transform.localPosition = new Vector3(basePosition.x, basePosition.y, basePosition.z + (columns * 0.5f));
 		
 		// Calculate scale for block transforms
 		blockScale = towerRadius * 6.0f / columns;
@@ -157,7 +160,7 @@ public partial class Tower : MonoBehaviour
 		blocks = new Block[columns * (rows + 1)];	// 1 extra row for block generators
 		if (_createRandomBlocks)
 			CreateRandomBlocks();
-		TowerCamera.instance.StartBlendingPos(rows * blockScale / 2.0f, minCameraDistance - (blockScale * rows));
+		TowerCamera.instance.StartBlending(rows * blockScale * 0.5f, minCameraDistance + rows);
 		newBlockTimer = newBlockAppearRate;
 		
 		// Initialise selector boxes
@@ -274,11 +277,11 @@ public partial class Tower : MonoBehaviour
 	}
 	
 	/// <summary> Restarts with the previous settings </summary>
-	public void ReplayGame(float _progressThroughAllLevels)
+	public void ReplayGame(int _level)
 	{
 		ClearAllBlocks();
 		ClearSpawnedEffects();
-		RestoreSpeeds(_progressThroughAllLevels, true);
+		RestoreSpeeds(_level, true);
 		CreateRandomBlocks();
 	}
 

@@ -55,20 +55,17 @@ MonoBehaviour:
     type: 2}
   viewLayout1Tower:
     towerPositions:
-    - {x: 0, y: 0, z: 0}
+    - {x: 0, y: 0, z: 4}
     cameraPos: {x: 0, y: 0, z: -10}
     cameraFoV: 60
     groundPos: {x: 0, y: -8, z: 40}
     groundScale: {x: 48, y: 48, z: 48}
   viewLayout2Towers:
     towerPositions:
-    - {x: -7.5, y: 0, z: 0}
-    - {x: 7.5, y: 0, z: 0}
+    - {x: -7.5, y: 0, z: 4}
+    - {x: 7.5, y: 0, z: 4}
     cameraPos: {x: 0, y: 0, z: -50}
     cameraFoV: 17.5
     groundPos: {x: 0, y: -4, z: 100}
     groundScale: {x: 32, y: 96, z: 48}
-  ringFillCapacityMin: 45
-  ringFillCapacityMax: 150
-  levelMin: 1
   levelMax: 33

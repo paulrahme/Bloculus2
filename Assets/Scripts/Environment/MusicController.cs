@@ -21,8 +21,8 @@ public class MusicController : MonoBehaviour
 	void Awake()
 	{
 		fullVolume = audioSource.volume;
-		if (PlayerPrefs.GetInt(Constants.ppMusicEnabled, 1) == 0) { ToggleMusic(); }
-		if (PlayerPrefs.GetInt(Constants.ppSoundEnabled, 1) == 0) { ToggleSoundEffects(); }
+		if (PlayerPrefs.GetInt(Constants.PPKeys.MusicEnabled.ToString(), 1) == 0) { ToggleMusic(); }
+		if (PlayerPrefs.GetInt(Constants.PPKeys.SoundEnabled.ToString(), 1) == 0) { ToggleSoundEffects(); }
 	}
 	
 	/// <summary> Called once per frame </summary>

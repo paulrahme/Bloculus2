@@ -2,18 +2,22 @@
 
 public class Player
 {
-	public float ProgressThroughAllLevels { get; private set; }
-	public int Score { get; private set; }
-	public float Level { get; private set; }
-	public int LevelInt { get; private set; }
+	#region Variables
 
 	string playerName;
 	GameMaster.ControllerTypes controllerType;
 	Tower tower;
 	UI_PlayerHUD hud;
+	int score;
+	float startingLevelProgress;
+	int level;
+	int levelMax;
+	float levelProgress;
+
+	#endregion Variables
 
 	/// <summary> Constructor </summary>
-	public Player(string _playerName, GameMaster.ControllerTypes _controllerType, Tower _towerPrefab, Vector3 _towerPosition, int _startingLevel)
+	public Player(string _playerName, GameMaster.ControllerTypes _controllerType, Tower _towerPrefab, Vector3 _towerPosition, int _startingLevel, float _startingLevelProgress)
 	{
 		playerName = _playerName;
 		controllerType = _controllerType;
@@ -51,14 +55,16 @@ public class Player
 		// Create HUD
 		hud = UIMaster.instance.hud.AddPlayerHUD(playerName);
 		SetScore(0);
-		SetLevel(_startingLevel);
+		startingLevelProgress = _startingLevelProgress;
+		levelMax = GameMaster.instance.levelMax;
+		SetLevel(_startingLevel, true);
 	}
 
 	/// <summary> Restarts the current game </summary>
 	public void ReplayGame()
 	{
 		SetScore(0);
-		tower.ReplayGame(ProgressThroughAllLevels);
+		tower.ReplayGame(level);
 	}
 
 	/// <summary> Destroy spawned elements </summary>
@@ -71,10 +77,9 @@ public class Player
 	/// <summary> Called once per frame </summary>
 	/// <param name='_dTime'> Time elapsed since last frame </param>
 	/// <param name="_levelProgressRate"> How much to progress the level per second </param>
-	public void UpdateGameplay(float _dTime, float _levelProgressRate)
+	public void UpdateGameplay(float _dTime, GameMode _gameMode)
 	{
-		// Update the level
-		UpdateLevelProgress(_levelProgressRate * _dTime);
+		float levelProgressBonus = 0f;
 
 		// Update the tower
 		int scoreChainFromTower;
@@ -82,7 +87,14 @@ public class Player
 
 		// Add score from tower, if any
 		if (scoreChainFromTower != 0)
-			AddScore(1 << scoreChainFromTower);
+		{
+			int chainExp = 1 << scoreChainFromTower;
+			AddScore(chainExp);
+			levelProgressBonus = _gameMode.ComboProgressBoost * chainExp;
+		}
+
+		// Update the level
+		UpdateLevelProgress((_gameMode.LevelProgressRate * _dTime) + levelProgressBonus);
 	}
 
 	#region Score
@@ -91,20 +103,20 @@ public class Player
 	/// <param name="_score"> New score </param>
 	public void SetScore(int _score)
 	{
-		Score = _score;
+		score = _score;
 
-		hud.RefreshScore(Score);
+		hud.RefreshScore(score);
 	}
 
 	/// <summary> Adds to the score and refreshes the UI </summary>
 	public void AddScore(int _score)
 	{
 		// Add bonus for higher levels, then add a 0 to the end
-		_score += (int)(_score * ProgressThroughAllLevels);
+		_score += _score * level / levelMax;
 		_score *= 10;
-		Score += _score;
+		score += _score;
 
-		hud.RefreshScore(Score);
+		hud.RefreshScore(score);
 	}
 
 	#endregion // Score
@@ -116,13 +128,10 @@ public class Player
 	/// <param name="_resetTower"> True to clear & reset the tower, false to leave it as is </param>
 	public void SetLevel(int _level, bool _resetTower = false)
 	{
-		Level = LevelInt = _level;
+		level = _level;
+		levelProgress = startingLevelProgress;
 
-		ProgressThroughAllLevels = ((Level - 1f) / (GameMaster.instance.levelMax - 1f));
-		if (ProgressThroughAllLevels > 1f)
-			ProgressThroughAllLevels = 1f;
-
-		tower.RestoreSpeeds(ProgressThroughAllLevels, _resetTower);
+		tower.RestoreSpeeds(level, _resetTower);
 
 		UpdateLevelProgress(0f);
 	}
@@ -132,13 +141,13 @@ public class Player
 	{
 		bool levelChanged = false;
 
-		Level += _levelProgress;
-
-		// Has level just changed?
-		int newLevelInt = Mathf.FloorToInt(Level);
-		if (newLevelInt != LevelInt)
+		// Update level progress
+		levelProgress += _levelProgress;
+		if (levelProgress < 0f)
+			levelProgress = 0f;		
+		else if (levelProgress > 1f)
 		{
-			SetLevel(newLevelInt);
+			SetLevel(level + 1);
 
 			// If it's in gameplay, trigger the "level complete" sequence
 			//LevelComplete();
@@ -146,7 +155,7 @@ public class Player
 			levelChanged = true;
 		}
 
-		hud.UpdateLevelProgress(Level - LevelInt);
+		hud.UpdateLevelProgress(levelProgress);
 
 		return levelChanged;
 	}
@@ -158,7 +167,7 @@ public class Player
 		if (_playSound)
 			Environment.instance.PlayLevelUpAudio();
 
-		Environment.instance.UpdateBackground(Level, true);
+		Environment.instance.UpdateBackground(level, true);
 	}
 
 	#endregion // Level progress

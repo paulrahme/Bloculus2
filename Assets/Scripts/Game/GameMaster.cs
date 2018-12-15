@@ -15,7 +15,7 @@ public partial class GameMaster : MonoBehaviour
 	[SerializeField] ViewLayout viewLayout1Tower = null;
 	[SerializeField] ViewLayout viewLayout2Towers = null;
 
-	[Header("Level tuning")]
+	[Header("Game tuning")]
 	public int levelMax = 33;
 
 	#endregion   // Inspector variables
@@ -26,6 +26,7 @@ public partial class GameMaster : MonoBehaviour
 	GameMode gameMode;
 	GameStates gameState;
 	Player[] players;
+	int startingLevel = 1;
 	float levelIncreaseRate;
 	public static System.Random randomGen = new System.Random();
 
@@ -71,7 +72,7 @@ public partial class GameMaster : MonoBehaviour
 	{
 		// Update each player/tower
 		for (int i = 0; i < players.Length; ++i)
-			players[i].UpdateGameplay(_dTime, gameMode.LevelProgressRate);
+			players[i].UpdateGameplay(_dTime, gameMode);
 
 		// Update ground
 		Environment.instance.UpdateEffects(_dTime);
@@ -147,6 +148,7 @@ public partial class GameMaster : MonoBehaviour
 	/// <param name="_gameModeType"> Which Game Mode to start </param>
 	public void StartGame(GameMode.GameModeTypes _gameModeType)
 	{
+		// Create GameMode
 		switch (_gameModeType)
 		{
 			case GameMode.GameModeTypes.Original:				gameMode = gameObject.AddComponent<GameModeOriginal>();			break;
@@ -157,6 +159,9 @@ public partial class GameMaster : MonoBehaviour
 			default: throw new UnityException("Unhandled Game Mode Type " + _gameModeType);
 		}
 
+		startingLevel = gameMode.GetStartingLevel();
+
+		// Set viewing positions (camera, ground, etc)
 		ViewLayout viewLayout;
 		switch (gameMode.NumPlayers)
 		{
@@ -165,7 +170,6 @@ public partial class GameMaster : MonoBehaviour
 
 			default: throw new UnityException("Unhandled tower layout for '" + gameMode.NumPlayers + "' towers");
 		}
-
 		TowerCamera.instance.SetLayout(viewLayout);
 		GroundController.instance.SetLayout(viewLayout);
 
@@ -178,41 +182,25 @@ public partial class GameMaster : MonoBehaviour
 				players[i] = null;
 			}
 		}
-
-		int startingLevel = (gameMode.AlwaysStartOnLevel1 ? 1 : PlayerPrefs.GetInt(Constants.ppStartingLevel, 1));
-
+	
 		// Create new players
 		players = new Player[gameMode.NumPlayers];
 		for (int i = 0; i < players.Length; ++i)
-			players[i] = new Player("Player " + (i + 1), controllerTypes[i], towerPrefab, viewLayout.towerPositions[i], startingLevel);
+			players[i] = new Player("Player " + (i + 1), controllerTypes[i], towerPrefab, viewLayout.towerPositions[i], startingLevel, gameMode.StartingLevelProgress);
 
-		SetStartingLevel(startingLevel);
-		SetNewLevel(0, true);
+		// Update background visuals
+		RefreshEnvironment(startingLevel);
 
 		SetGameState(GameStates.Gameplay);
 	}
 
-	/// <summary> Sets the speeds & tower layout </summary>
-	/// <param name='_level'> New level to set </param>
-	/// <param name="_resetTowers"> True to reset towers, false to leave them as is </param>
-	public void SetNewLevel(int _level, bool _resetTowers)
+	/// <summary> Updates the background visuals to match the level </summary>
+	/// <param name='_level'> Level to update to </param>
+	public void RefreshEnvironment(int _level)
 	{
-		for (int i = 0; i < players.Length; ++i)
-			players[i].SetLevel(_level, _resetTowers);
-
-		// Update background effects
-		Environment.instance.flowerOfLife.SetMaxActiveMaterials(Mathf.FloorToInt(players[0].LevelInt));
+		Environment.instance.UpdateBackground(startingLevel, false);
+		Environment.instance.flowerOfLife.SetMaxActiveMaterials(_level);
 		Environment.instance.groundController.SetScrollSpeed(_level);
-	}
-
-	/// <summary> Sets the starting level and adjusts game speeds accordingly </summary>
-	/// <param name='_level'> New level to start game on </param>
-	public void SetStartingLevel(int _level)
-	{
-		for (int i = 0; i < players.Length; ++i)
-			players[i].SetLevel(_level);
-
-		Environment.instance.UpdateBackground(_level, false);
 	}
 
 	/// <summary> Restarts with the previous settings </summary>
