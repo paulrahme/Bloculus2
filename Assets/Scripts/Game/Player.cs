@@ -133,6 +133,7 @@ public class Player
 
 		tower.RestoreSpeeds(level, _resetTower);
 
+		hud.SetLevel(level);
 		UpdateLevelProgress(0f);
 	}
 

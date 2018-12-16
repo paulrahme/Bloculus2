@@ -7,6 +7,7 @@ public class UI_PlayerHUD : MonoBehaviour
 
 	[Header("Score")]
 	[SerializeField] Text playerText = null;
+	[SerializeField] Text levelText = null;
 	[SerializeField] Text scoreText = null;
 
 	[Header("Level Progress")]
@@ -20,6 +21,13 @@ public class UI_PlayerHUD : MonoBehaviour
 	public void Init(string _playerName)
 	{
 		playerText.text = _playerName;
+	}
+
+	/// <summary> Updates the level display </summary>
+	/// <param name="_level"> Player's level </param>
+	public void SetLevel(int _level)
+	{
+		levelText.text = "Level " + _level;
 	}
 
 	/// <summary> Updates the score display </summary>
