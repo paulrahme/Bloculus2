@@ -16,9 +16,7 @@ public partial class Tower : MonoBehaviour
 
 	[Header("Prefabs")]
 	[SerializeField] BlockDefinition[]	blockDefs = null;
-	[SerializeField] GameObject			fallingRingPrefab = null;
 	[SerializeField] float				fallingRingScaleMult = 0.275f;
-	public GameObject					rippleRingPrefab = null;
 	public GameObject					blockDisappearPrefab = null;
 
 	[Header("Audio")]
@@ -61,7 +59,6 @@ public partial class Tower : MonoBehaviour
 	float selectorSwapAnimOffset;
 	AudioSource selectorAudioSource;
 	List<int> blocksToDelete = new List<int>();
-	List<FallingRing> fallingRings = new List<FallingRing>();
 	Vector3 localEulerAngles, targetEulerAngles;
 	internal TowerControl controller;
 	ControlData controlData = new ControlData();
@@ -198,22 +195,6 @@ public partial class Tower : MonoBehaviour
 		}
 	}
 
-	/// <summary> Sets the 3d falling drops to pause/unpause </summary>
-	/// <param name='_paused'> True to pause, false to unpause </param>
-	void PauseDropsAndShockwaves(bool _paused)
-	{
-		for (int i = 0; i < fallingRings.Count; ++i)
-			fallingRings[i].enabled = !_paused;
-
-		Environment.instance.PauseAllShockwaves(_paused);
-	}
-
-	public void RingFinishedFalling(FallingRing _ring)
-	{
-		RecyclePool.Recycle(RecyclePool.PoolTypes.FallingRing, _ring.gameObject);
-		fallingRings.Remove(_ring);
-	}
-
 	/// <summary> Sets up some random blocks in the tower </summary>
 	void CreateRandomBlocks()
 	{
@@ -270,29 +251,16 @@ public partial class Tower : MonoBehaviour
 		UpdateNewBlocks(_dTime);
 		_scoreChainThisFrame = UpdateBlocks(_dTime);
 		UpdateRotation(_dTime);
-
-		// Update all falling rings
-		for (int i = 0; i < fallingRings.Count; ++i)
-			fallingRings[i].UpdateFalling(_dTime);
 	}
 	
 	/// <summary> Restarts with the previous settings </summary>
 	public void ReplayGame(int _level)
 	{
 		ClearAllBlocks();
-		ClearSpawnedEffects();
 		RestoreSpeeds(_level, true);
 		CreateRandomBlocks();
 	}
 
-	/// <summary> Clears all spawned falling objects, etc </summary>
-	public void ClearSpawnedEffects()
-	{
-		for (int i = 0; i < fallingRings.Count; ++i)
-			Destroy(fallingRings[i].gameObject);
-		fallingRings.Clear();
-	}
-	
 	/// <summary> Sets the speeds & tower layout </summary>
 	/// <param name='_progressThroughAllLevels'> Speed scale: 0.0f = slowest, 1.0f = fastest </param>
 	public void SetNewLevel(float _progressThroughAllLevels, bool _resetTower)
@@ -656,8 +624,7 @@ public partial class Tower : MonoBehaviour
 			{
 				// Add 3D object to fall out of the bottom of the tower
 				Transform blockTrans = blockToDelete.gameObj.transform;
-				FallingRing fallScript = FallingRing.Spawn(this, fallingRingPrefab, blockTrans.position, blockScale * fallingRingScaleMult, blockColor);
-				fallingRings.Add(fallScript);
+				Environment.instance.SpawnFallingRing(blockTrans.position, blockScale * fallingRingScaleMult, blockColor);
 			}
 
 			// Add background pulse

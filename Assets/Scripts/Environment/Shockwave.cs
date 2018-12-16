@@ -10,30 +10,17 @@ public class Shockwave : MonoBehaviour
 	#endregion	// Inspector variables
 
 	float fadeAmount;
-
-	/// <summary> Creates (or reuses) a shockwave GameObject </summary>
-	/// <param name="_position"> Centre position </param>
-	/// <param name="_color"> Ripple's colour </param>
-	public static void StartRipple(GameObject _prefab, Vector3 _position, Color _color)
-	{
-		GameObject gameObj = RecyclePool.RetrieveOrCreate(RecyclePool.PoolTypes.Shockwave, _prefab);
-
-		// Set position & rotation
-		gameObj.transform.parent = Environment.instance.transform;
-		gameObj.transform.position = _position;
-		gameObj.transform.localScale = Vector3.zero;
-		gameObj.GetComponent<Renderer>().material.color = _color;
-
-		// (Re)start popup animation
-		Shockwave shockwaveScript = gameObj.GetComponent<Shockwave>();
-		shockwaveScript.Reset();
-
-		Environment.instance.shockwaves.Add(shockwaveScript);
-	}
+	Material myMaterial;
+	Color color;
+	Vector3 localScale;
 
 	/// <summary> Restarts the animation </summary>
-	void Reset()
+	public void Init(Color _color)
 	{
+		if (myMaterial == null)
+			myMaterial = GetComponent<Renderer>().material;
+
+		color = myMaterial.color = _color;
 		fadeAmount = 1.0f;
 	}
 
@@ -41,21 +28,18 @@ public class Shockwave : MonoBehaviour
 	public void UpdateRipple(float _dTime)
 	{
 		fadeAmount -= _dTime / lifetime;
-		if (fadeAmount <= 0.0f)
-		{
-			Environment.instance.shockwaves.Remove(this);
-			RecyclePool.Recycle(RecyclePool.PoolTypes.Shockwave, gameObject);
-		}
-		else
+
+		if (fadeAmount > 0.0f)
 		{
 			// Grow
-			float scale = (1.0f - fadeAmount) * growScale;
-			transform.localScale = new Vector3(scale, scale, scale);
-			
+			localScale.x = localScale.y = localScale.z = (1.0f - fadeAmount) * growScale;
+			transform.localScale = localScale;
+
 			// Fade
-			Color newColor = GetComponent<Renderer>().material.color;
-			newColor.a = fadeAmount;
-			GetComponent<Renderer>().material.color = newColor;
+			color.a = fadeAmount;
+			myMaterial.color = color;
 		}
+		else
+			Environment.instance.ShockwaveFinished(this);
 	}	
 }

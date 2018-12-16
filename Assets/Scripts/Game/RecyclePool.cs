@@ -8,18 +8,21 @@ public class RecyclePool
 		BlockDisappear,
 		FallingRing,
 		Shockwave,
-
-		Count
 	}
 
-	static Stack<GameObject>[] pools = null;
+	static Stack<GameObject>[] pools;
 
+	/// <summary> Gets the specified recycle pool </summary>
+	/// <param name="_type"> Pool type from enum </param>
+	/// <returns> The requested Stack </returns>
 	static Stack<GameObject> GetStack(PoolTypes _type)
 	{
+		// First time? Create all stacks
 		if (pools == null)
 		{
-			pools = new Stack<GameObject>[(int)PoolTypes.Count];
-			for (int type = 0; type < (int)PoolTypes.Count; ++type)
+			int poolCount = System.Enum.GetValues(typeof(PoolTypes)).Length;
+			pools = new Stack<GameObject>[poolCount];
+			for (int type = 0; type < poolCount; ++type)
 				pools[type] = new Stack<GameObject>();
 		}
 
@@ -54,6 +57,7 @@ public class RecyclePool
 		return gameObj;
 	}
 
+	/// <summary> Clears all recyce pools, destroying all recycled objects </summary>
 	public static void ClearAllPools()
 	{
 		if (pools == null)

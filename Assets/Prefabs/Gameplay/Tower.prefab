@@ -974,9 +974,7 @@ MonoBehaviour:
       type: 2}
     prefabSolid: {fileID: 100000, guid: 8fb5392d6043343719925092f36bd266, type: 2}
     landingAudio: {fileID: 8300000, guid: 974108a6dbbb14a218f49617f6ff29ee, type: 3}
-  fallingRingPrefab: {fileID: 100000, guid: d32082855f50b4deeb80d2aed8607f81, type: 2}
   fallingRingScaleMult: 0.275
-  rippleRingPrefab: {fileID: 100000, guid: 1a0bce98e054c4aa499db61d0aeace62, type: 2}
   blockDisappearPrefab: {fileID: 100000, guid: ec7a9bd3a1ba1465487e1377439c16fd, type: 2}
   blockDisappearAudio:
   - {fileID: 8300000, guid: 930ad60ad38d54daba8f1ae9dbcde1d1, type: 3}
@@ -993,7 +991,6 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 2d9f7a7a2efe44385805306f45724989, type: 3}
   towerRadius: 4
   rotateSpeed: 10
-  minDistanceFromCamera: 4
   minCameraDistance: -6
   fallSpeedSlowest: 2
   fallSpeedFastest: 7

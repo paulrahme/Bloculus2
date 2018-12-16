@@ -215,8 +215,7 @@ public partial class GameMaster : MonoBehaviour
 	/// <summary> Pauses the gameplay </summary>
 	public void Pause()
 	{
-		Environment.instance.PauseAllShockwaves(true);
-		Environment.instance.musicController.PauseGameMusic();
+		Environment.instance.SetPaused(true);
 		enabled = false;
 		gameState = GameStates.Paused;
 	}
@@ -224,8 +223,7 @@ public partial class GameMaster : MonoBehaviour
 	/// <summary> Resumes gameplay </summary>
 	public void UnpauseGame()
 	{
-		Environment.instance.PauseAllShockwaves(false);
-		Environment.instance.musicController.UnpauseGameMusic();
+		Environment.instance.SetPaused(false);
 		enabled = true;
 		gameState = GameStates.Gameplay;
 	}
@@ -245,6 +243,7 @@ public partial class GameMaster : MonoBehaviour
 			players[i].Destroy();
 
 		players = null;
+		Environment.instance.ClearAllEffects();
 		RecyclePool.ClearAllPools();
 
 		gameState = GameStates.Menu;
