@@ -20,4 +20,9 @@ public abstract class GameMode : MonoBehaviour
 	{
 		return PlayerPrefs.GetInt(GameModeType.ToString() + Constants.PPKeys.StartingLevel, 1);
 	}
+
+	public void PlayerLevelledUp(int _level)
+	{
+		GameMaster.instance.RefreshEnvironment(_level);
+	}
 }

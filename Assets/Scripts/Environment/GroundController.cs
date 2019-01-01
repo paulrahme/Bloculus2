@@ -8,7 +8,7 @@ public class GroundController : MonoBehaviour
 
 	[SerializeField] float		rippleStrength = 0.03f;
 	[SerializeField] float		rippleDropOffMult = 0.22f;
-	[SerializeField] Vector2	scrollSpeedFastest = new Vector2(0.0f, -6.0f);
+	[SerializeField] Vector2	scrollSpeedFastest = new Vector2(0.0f, -3.0f);
 	[SerializeField] Vector2	scrollSpeedSlowest = new Vector2(0.0f, -0.6f);
 	[SerializeField] Material[]	levelMaterials = null;
 

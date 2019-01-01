@@ -80,8 +80,6 @@ public partial class GameMaster : MonoBehaviour
 
 	#region Player controls
 
-	#region Game states
-
 	public ControllerTypes GetPlayerControls(int _playerIdx)
 	{
 		return controllerTypes[_playerIdx];
@@ -124,6 +122,8 @@ public partial class GameMaster : MonoBehaviour
 
 	#endregion // Player controls
 
+	#region Game states
+
 	/// <summary> Changes to a new Game State </summary>
 	/// <param name="_gameState"> GameStates.* state to set </param>
 	void SetGameState(GameStates _gameState)
@@ -134,6 +134,7 @@ public partial class GameMaster : MonoBehaviour
 		{
 			case GameStates.Menu:
 				UIMaster.instance.mainMenu.gameObject.SetActive(true);
+				Environment.instance.musicController.StartTitleMusic();
 				break;
 
 			case GameStates.Gameplay:
@@ -198,7 +199,7 @@ public partial class GameMaster : MonoBehaviour
 	/// <param name='_level'> Level to update to </param>
 	public void RefreshEnvironment(int _level)
 	{
-		Environment.instance.UpdateBackground(startingLevel, false);
+		Environment.instance.UpdateBackground(_level);
 		Environment.instance.flowerOfLife.SetMaxActiveMaterials(_level);
 		Environment.instance.groundController.SetScrollSpeed(_level);
 	}
@@ -217,7 +218,7 @@ public partial class GameMaster : MonoBehaviour
 	{
 		Environment.instance.SetPaused(true);
 		enabled = false;
-		gameState = GameStates.Paused;
+		SetGameState(GameStates.Paused);
 	}
 
 	/// <summary> Resumes gameplay </summary>
@@ -225,7 +226,7 @@ public partial class GameMaster : MonoBehaviour
 	{
 		Environment.instance.SetPaused(false);
 		enabled = true;
-		gameState = GameStates.Gameplay;
+		SetGameState(GameStates.Gameplay);
 	}
 
 	/// <summary> Starts the Game Over sequence </summary>
@@ -233,7 +234,7 @@ public partial class GameMaster : MonoBehaviour
 	{
 		Environment.instance.GameOver();
 		UIMaster.instance.GameOver();
-		gameState = GameStates.GameOver;
+		SetGameState(GameStates.GameOver);
 	}
 
 	/// <summary> Destroys all towers and resets game state </summary>
@@ -246,7 +247,7 @@ public partial class GameMaster : MonoBehaviour
 		Environment.instance.ClearAllEffects();
 		RecyclePool.ClearAllPools();
 
-		gameState = GameStates.Menu;
+		SetGameState(GameStates.Menu);
 	}
 
 	#endregion // Game states

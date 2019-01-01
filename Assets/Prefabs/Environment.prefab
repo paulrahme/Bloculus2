@@ -4832,7 +4832,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rippleStrength: 0.05
   rippleDropOffMult: 0.22
-  scrollSpeedFastest: {x: 0, y: -6}
+  scrollSpeedFastest: {x: 0, y: -3}
   scrollSpeedSlowest: {x: 0, y: -0.6}
   levelMaterials:
   - {fileID: 2100000, guid: 0b89381d6a3df4f4890943cf24e51277, type: 2}

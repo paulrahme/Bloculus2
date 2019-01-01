@@ -103,24 +103,24 @@ public class Environment : MonoBehaviour
 	{
 		float progress;
 		int levelGroup;
-		if (_level < 8.0f)
+		if (_level < 8f)
 		{
 			progress = _level / 8.0f;
 			levelGroup = 0;
 		}
-		else if (_level < 16.0f)
+		else if (_level < 16f)
 		{
-			progress = (_level - 8.0f) / 8.0f;
+			progress = (_level - 8f) / 8f;
 			levelGroup = 1;
 		}
-		else if (_level < 24.0f)
+		else if (_level < 24f)
 		{
-			progress = (_level - 16.0f) / 8.0f;
+			progress = (_level - 16f) / 8f;
 			levelGroup = 2;
 		}
 		else if (_level < GameMaster.instance.levelMax)
 		{
-			progress = (_level - 24.0f) / 8.0f;
+			progress = (_level - 24f) / 8f;
 			levelGroup = 3;
 		}
 		else
@@ -137,12 +137,10 @@ public class Environment : MonoBehaviour
 	}
 
 	/// <summary> Updates the background colour, texture etc. </summary>
-	/// <param name="_changeMusic"> When true, change background music as necessary </param>
-	public void UpdateBackground(float _level, bool _changeMusic)
+	public void UpdateBackground(float _level)
 	{
 		int musicIdx = SetBackground(_level);
-		if (_changeMusic)
-			musicController.StartGameMusic(musicIdx);
+		musicController.StartGameMusic(musicIdx);
 	}
 
 	#endregion // Background

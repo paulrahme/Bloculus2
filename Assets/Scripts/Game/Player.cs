@@ -76,7 +76,7 @@ public class Player
 
 	/// <summary> Called once per frame </summary>
 	/// <param name='_dTime'> Time elapsed since last frame </param>
-	/// <param name="_levelProgressRate"> How much to progress the level per second </param>
+	/// <param name="_gameMode"> Current GameMode being played </param>
 	public void UpdateGameplay(float _dTime, GameMode _gameMode)
 	{
 		float levelProgressBonus = 0f;
@@ -94,7 +94,8 @@ public class Player
 		}
 
 		// Update the level
-		UpdateLevelProgress((_gameMode.LevelProgressRate * _dTime) + levelProgressBonus);
+		if (UpdateLevelProgress((_gameMode.LevelProgressRate * _dTime) + levelProgressBonus))
+			_gameMode.PlayerLevelledUp(level);
 	}
 
 	#region Score
@@ -168,7 +169,7 @@ public class Player
 		if (_playSound)
 			Environment.instance.PlayLevelUpAudio();
 
-		Environment.instance.UpdateBackground(level, true);
+		Environment.instance.UpdateBackground(level);
 	}
 
 	#endregion // Level progress

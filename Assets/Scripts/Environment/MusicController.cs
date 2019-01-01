@@ -71,7 +71,11 @@ public class MusicController : MonoBehaviour
 	/// <summary> Starts the title music </summary>
 	public void StartTitleMusic()
 	{
+		if (audioSource.clip != null)
+			audioSource.Stop();
+		
 		audioSource.clip = titleMusic;
+
 		if (!audioSource.mute)
 		{
 			audioSource.Play();
