@@ -140,6 +140,7 @@ public partial class Tower : MonoBehaviour
 
 		SetNewLevel(progressThroughAllLevels, _resetTower);
 		newBlockTimer = newBlockAppearRate;
+		RefreshSelectorPos();
 	}
 	
 	/// <summary> Prepares the tower from the current settings </summary>
@@ -674,7 +675,7 @@ public partial class Tower : MonoBehaviour
 		return _col;
 	}
 	
-	/// <summary>Positions the selectors at the specified col (and col+1) and row. </summary>
+	/// <summary> Positions the selectors at the specified col (and col+1) and row. </summary>
 	/// <param name='_colLeft'> Column for left half of selector (right half will add 1) </param>
 	/// <param name='_row'> Row (for both halves) </param>
 	void SetSelectorPos(int _colLeft, int _row)
@@ -687,6 +688,12 @@ public partial class Tower : MonoBehaviour
 
 		selectorRight.transform.localEulerAngles = new Vector3(0.0f, Block.CalcAngleDeg(WrapCol(_colLeft + 1), columns), 0.0f);
 		selectorRight.transform.localPosition = Block.CalcPosition(WrapCol(_colLeft + 1), _row, selectorRight.localEulerAngles.y, towerRadius, blockScale);
+	}
+
+	/// <summary> Refreshes the current selectors position, eg. when tower size has changed </summary>
+	void RefreshSelectorPos()
+	{
+		SetSelectorPos(selectorLeftCol, selectorRow);
 	}
 
 	/// <summary> Updates the selector's swapping animation </summary>

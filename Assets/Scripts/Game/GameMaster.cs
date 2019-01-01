@@ -201,7 +201,7 @@ public partial class GameMaster : MonoBehaviour
 	{
 		Environment.instance.UpdateBackground(_level);
 		Environment.instance.flowerOfLife.SetMaxActiveMaterials(_level);
-		Environment.instance.groundController.SetScrollSpeed(_level);
+		Environment.instance.groundController.SetScrollSpeed((float)_level / levelMax);
 	}
 
 	/// <summary> Restarts with the previous settings </summary>
