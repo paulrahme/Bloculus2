@@ -7,37 +7,24 @@ public partial class Tower : MonoBehaviour
 	#region Inspector variables
 
 	[Header("Hierarchy")]
-	[SerializeField] Transform			selectorLeft = null;
-	[SerializeField] Transform			selectorRight = null;
-	[SerializeField] AudioSource		audioSourceXposZpos = null;
-	[SerializeField] AudioSource		audioSourceXnegZpos = null;
-	[SerializeField] AudioSource		audioSourceXposZneg = null;
-	[SerializeField] AudioSource		audioSourceXnegZneg = null;
+	[SerializeField] Transform selectorLeft = null;
+	[SerializeField] Transform selectorRight = null;
+	[SerializeField] AudioSource audioSourceXposZpos = null;
+	[SerializeField] AudioSource audioSourceXnegZpos = null;
+	[SerializeField] AudioSource audioSourceXposZneg = null;
+	[SerializeField] AudioSource audioSourceXnegZneg = null;
 
 	[Header("Prefabs")]
-	[SerializeField] BlockDefinition[]	blockDefs = null;
-	[SerializeField] float				fallingRingScaleMult = 0.275f;
-	public GameObject					blockDisappearPrefab = null;
+	[SerializeField] BlockDefinition[] blockDefs = null;
+	public GameObject blockDisappearPrefab = null;
+
+	[Header("Tuning")]
+	[SerializeField] GameTuning tuning = null;
 
 	[Header("Audio")]
-	[SerializeField] AudioClip[]		blockDisappearAudio = null;
-	[SerializeField] AudioClip[]		selectorMoveAudio = null;
-	[SerializeField] AudioClip[]		selectorSwitchAudio = null;
-
-	[Header("Gameplay Tuning & Balancing")]
-	[SerializeField] float				towerRadius = 4f;
-	[SerializeField] float				rotateSpeed = 10f;
-	[SerializeField] float				minCameraDistance = -6f;
-	[SerializeField] float				fallSpeedSlowest = 2f;
-	[SerializeField] float				fallSpeedFastest = 7f;
-	[SerializeField] float				newBlockAppearRateSlowest = 4.5f;
-	[SerializeField] float				newBlockAppearRateFastest = 2f;
-	[SerializeField] int				columnsMin = 10;
-	[SerializeField] int				columnsMax = 30;
-	[SerializeField] int				rowsMin = 5;
-	[SerializeField] int				rowsMax = 16;
-	[SerializeField] int				blockTypesMin = 4;
-	[SerializeField] float				selectorSwapAnimSpeed = 9f;
+	[SerializeField] AudioClip[] blockDisappearAudio = null;
+	[SerializeField] AudioClip[] selectorMoveAudio = null;
+	[SerializeField] AudioClip[] selectorSwitchAudio = null;
 
 	#endregion	// Inspector variables
 
@@ -83,7 +70,7 @@ public partial class Tower : MonoBehaviour
 		if (thisBlocksStack.Count > 0)
 		{
 			Block block = thisBlocksStack.Pop();
-			block.Setup(_blockID, transform, columns, towerRadius, blockScale, _col, _row);
+			block.Setup(_blockID, transform, columns, tuning.towerRadius, blockScale, _col, _row);
 			return block;
 		}
 		else
@@ -93,7 +80,7 @@ public partial class Tower : MonoBehaviour
 			GameObject prefab = (blockStyle == 0) ? blockDef.prefabSolid : blockDef.prefabWithInnerShape;
 			GameObject gameObj = Instantiate(prefab) as GameObject;
 			Block block = new Block(gameObj, blockDefs[_blockID]);
-			block.Setup(_blockID, transform, columns, towerRadius, blockScale, _col, _row);
+			block.Setup(_blockID, transform, columns, tuning.towerRadius, blockScale, _col, _row);
 			return block;
 		}
 	}
@@ -134,7 +121,7 @@ public partial class Tower : MonoBehaviour
 	/// <summary> Resets the current speed values to their starting values </summary>
 	public void RestoreSpeeds(int _level, bool _resetTower)
 	{
-		float progressThroughAllLevels = ((_level - 1f) / (GameMaster.instance.levelMax - 1f));
+		float progressThroughAllLevels = ((_level - 1f) / (GameMaster.Tuning.levelMax - 1f));
 		if (progressThroughAllLevels > 1f)
 			progressThroughAllLevels = 1f;
 
@@ -151,14 +138,14 @@ public partial class Tower : MonoBehaviour
 		transform.localPosition = new Vector3(basePosition.x, basePosition.y, basePosition.z + (columns * 0.5f));
 		
 		// Calculate scale for block transforms
-		blockScale = towerRadius * 6.0f / columns;
+		blockScale = tuning.towerRadius * 6.0f / columns;
 		halfSelectorAngle = 360.0f / (float)columns * 0.5f;
 		
 		// Set up starting blocks
 		blocks = new Block[columns * (rows + 1)];	// 1 extra row for block generators
 		if (_createRandomBlocks)
 			CreateRandomBlocks();
-		TowerCamera.instance.StartBlending(rows * blockScale * 0.5f, minCameraDistance + rows);
+		TowerCamera.instance.StartBlending(rows * blockScale * 0.5f, tuning.minCameraDistance + rows);
 		newBlockTimer = newBlockAppearRate;
 		
 		// Initialise selector boxes
@@ -267,15 +254,15 @@ public partial class Tower : MonoBehaviour
 	public void SetNewLevel(float _progressThroughAllLevels, bool _resetTower)
 	{
 		// Update speeds
-		fallSpeed = fallSpeedSlowest + ((fallSpeedFastest - fallSpeedSlowest) * _progressThroughAllLevels);
-		newBlockAppearRate = newBlockAppearRateSlowest + ((newBlockAppearRateFastest - newBlockAppearRateSlowest) * _progressThroughAllLevels);
+		fallSpeed = tuning.fallSpeedSlowest + ((tuning.fallSpeedFastest - tuning.fallSpeedSlowest) * _progressThroughAllLevels);
+		newBlockAppearRate = tuning.newBlockAppearRateSlowest + ((tuning.newBlockAppearRateFastest - tuning.newBlockAppearRateSlowest) * _progressThroughAllLevels);
 
 		// Update block types
-		currentBlockTypes = blockTypesMin + Convert.ToInt32(Convert.ToSingle(blockDefs.Length - blockTypesMin) * _progressThroughAllLevels);
+		currentBlockTypes = tuning.blockTypesMin + Convert.ToInt32(Convert.ToSingle(blockDefs.Length - tuning.blockTypesMin) * _progressThroughAllLevels);
 
 		// Calculate columns & rows for new level
-		int newColumns = columnsMin + Convert.ToInt32(Convert.ToSingle(columnsMax - columnsMin) * _progressThroughAllLevels);
-		int newRows = rowsMin + Convert.ToInt32(Convert.ToSingle(rowsMax - rowsMin) * _progressThroughAllLevels);
+		int newColumns = tuning.columnsMin + Convert.ToInt32(Convert.ToSingle(tuning.columnsMax - tuning.columnsMin) * _progressThroughAllLevels);
+		int newRows = tuning.rowsMin + Convert.ToInt32(Convert.ToSingle(tuning.rowsMax - tuning.rowsMin) * _progressThroughAllLevels);
 
 		// Menu selection: always recreate tower with new set of blocks
 		if (_resetTower)
@@ -318,7 +305,7 @@ public partial class Tower : MonoBehaviour
 			targetEulerAngles.y -= 360.0f;
 		while (targetEulerAngles.y < localEulerAngles.y - 180.0f)
 			targetEulerAngles.y += 360.0f;
-		localEulerAngles += (targetEulerAngles - localEulerAngles) * rotateSpeed * _dTime;
+		localEulerAngles += (targetEulerAngles - localEulerAngles) * tuning.rotateSpeed * _dTime;
 		myTrans.localEulerAngles = localEulerAngles;
 	}
 
@@ -384,13 +371,13 @@ public partial class Tower : MonoBehaviour
 			{
 				oldLeft.col = rightCol;
 				oldLeft.gameObj.transform.localEulerAngles = new Vector3(0.0f, Block.CalcAngleDeg(oldLeft.col, columns), 0.0f);
-				oldLeft.gameObj.transform.localPosition = Block.CalcPosition(oldLeft.col, oldLeft.row, oldLeft.gameObj.transform.localEulerAngles.y, towerRadius, blockScale);
+				oldLeft.gameObj.transform.localPosition = Block.CalcPosition(oldLeft.col, oldLeft.row, oldLeft.gameObj.transform.localEulerAngles.y, tuning.towerRadius, blockScale);
 			}
 			if (oldRight != null)
 			{
 				oldRight.col = selectorLeftCol;
 				oldRight.gameObj.transform.localEulerAngles = new Vector3(0.0f, Block.CalcAngleDeg(oldRight.col, columns), 0.0f);
-				oldRight.gameObj.transform.localPosition = Block.CalcPosition(oldRight.col, oldRight.row, oldRight.gameObj.transform.localEulerAngles.y, towerRadius, blockScale);
+				oldRight.gameObj.transform.localPosition = Block.CalcPosition(oldRight.col, oldRight.row, oldRight.gameObj.transform.localEulerAngles.y, tuning.towerRadius, blockScale);
 			}
 		}
 		
@@ -625,7 +612,7 @@ public partial class Tower : MonoBehaviour
 			{
 				// Add 3D object to fall out of the bottom of the tower
 				Transform blockTrans = blockToDelete.gameObj.transform;
-				Environment.instance.SpawnFallingRing(blockTrans.position, blockScale * fallingRingScaleMult, blockColor);
+				Environment.instance.SpawnFallingRing(blockTrans.position, blockScale * tuning.fallingRingScaleMult, blockColor);
 			}
 
 			// Add background pulse
@@ -684,10 +671,10 @@ public partial class Tower : MonoBehaviour
 		selectorRow = _row;
 
 		selectorLeft.localEulerAngles = new Vector3(0.0f, Block.CalcAngleDeg(_colLeft, columns), 0.0f);
-		selectorLeft.localPosition = Block.CalcPosition(WrapCol(_colLeft), _row, selectorLeft.localEulerAngles.y, towerRadius, blockScale);
+		selectorLeft.localPosition = Block.CalcPosition(WrapCol(_colLeft), _row, selectorLeft.localEulerAngles.y, tuning.towerRadius, blockScale);
 
 		selectorRight.transform.localEulerAngles = new Vector3(0.0f, Block.CalcAngleDeg(WrapCol(_colLeft + 1), columns), 0.0f);
-		selectorRight.transform.localPosition = Block.CalcPosition(WrapCol(_colLeft + 1), _row, selectorRight.localEulerAngles.y, towerRadius, blockScale);
+		selectorRight.transform.localPosition = Block.CalcPosition(WrapCol(_colLeft + 1), _row, selectorRight.localEulerAngles.y, tuning.towerRadius, blockScale);
 	}
 
 	/// <summary> Refreshes the current selectors position, eg. when tower size has changed </summary>
@@ -700,11 +687,11 @@ public partial class Tower : MonoBehaviour
 	/// <param name='_dTime'> Time elapsed since last Update() </param>
 	void UpdateSelectorSwapAnim(float _dTime)
 	{
-		selectorSwapAnimOffset -= selectorSwapAnimSpeed * _dTime;
+		selectorSwapAnimOffset -= tuning.selectorSwapAnimSpeed * _dTime;
 		if (selectorSwapAnimOffset < 0.0f) { selectorSwapAnimOffset = 0.0f; }
 	
-		Vector3 leftPos = Block.CalcPosition(WrapCol(selectorLeftCol), selectorRow, selectorLeft.localEulerAngles.y, towerRadius, blockScale);
-		Vector3 rightPos = Block.CalcPosition(WrapCol(selectorLeftCol + 1), selectorRow, selectorRight.localEulerAngles.y, towerRadius, blockScale);
+		Vector3 leftPos = Block.CalcPosition(WrapCol(selectorLeftCol), selectorRow, selectorLeft.localEulerAngles.y, tuning.towerRadius, blockScale);
+		Vector3 rightPos = Block.CalcPosition(WrapCol(selectorLeftCol + 1), selectorRow, selectorRight.localEulerAngles.y, tuning.towerRadius, blockScale);
 
 		selectorRight.localPosition = new Vector3(Mathf.Lerp(rightPos.x, leftPos.x, selectorSwapAnimOffset), rightPos.y, Mathf.Lerp(rightPos.z, leftPos.z, selectorSwapAnimOffset));
 		selectorLeft.localPosition = new Vector3(Mathf.Lerp(leftPos.x, rightPos.x, selectorSwapAnimOffset), leftPos.y, Mathf.Lerp(leftPos.z, rightPos.z, selectorSwapAnimOffset));

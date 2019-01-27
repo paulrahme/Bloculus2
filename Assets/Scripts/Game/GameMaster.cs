@@ -11,12 +11,12 @@ public partial class GameMaster : MonoBehaviour
 	[Header("Prefabs")]
 	[SerializeField] Tower towerPrefab = null;
 
+	[Header("Tuning")]
+	[SerializeField] GameTuning tuning = null;
+
 	[Header("View Layouts")]
 	[SerializeField] ViewLayout viewLayout1Tower = null;
 	[SerializeField] ViewLayout viewLayout2Towers = null;
-
-	[Header("Game tuning")]
-	public int levelMax = 33;
 
 	#endregion   // Inspector variables
 
@@ -30,6 +30,7 @@ public partial class GameMaster : MonoBehaviour
 	float levelIncreaseRate;
 	public static System.Random randomGen = new System.Random();
 
+	public static GameTuning Tuning { get { return instance.tuning; } }
 	public bool IsGameOver { get { return (gameState == GameStates.GameOver); } }
 
 	#endregion // Non-inspector variables + properties
@@ -201,7 +202,7 @@ public partial class GameMaster : MonoBehaviour
 	{
 		Environment.instance.UpdateBackground(_level);
 		Environment.instance.flowerOfLife.SetMaxActiveMaterials(_level);
-		Environment.instance.groundController.SetScrollSpeed((float)_level / levelMax);
+		Environment.instance.groundController.SetScrollSpeed((float)_level / tuning.levelMax);
 	}
 
 	/// <summary> Restarts with the previous settings </summary>

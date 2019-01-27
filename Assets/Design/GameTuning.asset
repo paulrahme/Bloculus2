@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: baffcd39fc83a4025ac03d14057d394e, type: 3}
+  m_Name: GameTuning
+  m_EditorClassIdentifier: 
+  towerRadius: 4
+  rotateSpeed: 10
+  minCameraDistance: -6
+  selectorSwapAnimSpeed: 9
+  fallSpeedSlowest: 2
+  fallSpeedFastest: 7
+  newBlockAppearRateSlowest: 3.5
+  newBlockAppearRateFastest: 2
+  columnsMin: 10
+  columnsMax: 30
+  rowsMin: 5
+  rowsMax: 16
+  blockTypesMin: 4
+  fallingRingScaleMult: 0.275

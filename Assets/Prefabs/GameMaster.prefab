@@ -53,6 +53,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   towerPrefab: {fileID: 114834958376120796, guid: 06cf7361d2eea4b86849bb233b0573e2,
     type: 2}
+  tuning: {fileID: 11400000, guid: 4adb0cbc899734060ac84d87f02d07c1, type: 2}
   viewLayout1Tower:
     towerPositions:
     - {x: 0, y: 0, z: 4}
@@ -68,4 +69,3 @@ MonoBehaviour:
     cameraFoV: 17.5
     groundPos: {x: 0, y: -4, z: 100}
     groundScale: {x: 32, y: 96, z: 48}
-  levelMax: 33

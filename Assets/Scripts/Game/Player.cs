@@ -56,7 +56,7 @@ public class Player
 		hud = UIMaster.instance.hud.AddPlayerHUD(playerName);
 		SetScore(0);
 		startingLevelProgress = _startingLevelProgress;
-		levelMax = GameMaster.instance.levelMax;
+		levelMax = GameMaster.Tuning.levelMax;
 		SetLevel(_startingLevel, true);
 	}
 

@@ -118,7 +118,7 @@ public class Environment : MonoBehaviour
 			progress = (_level - 16f) / 8f;
 			levelGroup = 2;
 		}
-		else if (_level < GameMaster.instance.levelMax)
+		else if (_level < GameMaster.Tuning.levelMax)
 		{
 			progress = (_level - 24f) / 8f;
 			levelGroup = 3;

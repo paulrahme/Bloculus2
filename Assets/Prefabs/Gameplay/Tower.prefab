@@ -974,8 +974,8 @@ MonoBehaviour:
       type: 2}
     prefabSolid: {fileID: 100000, guid: 8fb5392d6043343719925092f36bd266, type: 2}
     landingAudio: {fileID: 8300000, guid: 974108a6dbbb14a218f49617f6ff29ee, type: 3}
-  fallingRingScaleMult: 0.275
   blockDisappearPrefab: {fileID: 100000, guid: ec7a9bd3a1ba1465487e1377439c16fd, type: 2}
+  tuning: {fileID: 11400000, guid: 4adb0cbc899734060ac84d87f02d07c1, type: 2}
   blockDisappearAudio:
   - {fileID: 8300000, guid: 930ad60ad38d54daba8f1ae9dbcde1d1, type: 3}
   - {fileID: 8300000, guid: 42fca81f30b9545f1bb880e777b8c94b, type: 3}
@@ -989,16 +989,3 @@ MonoBehaviour:
   selectorSwitchAudio:
   - {fileID: 8300000, guid: ea33b4734fa094056a97b3949703b8e3, type: 3}
   - {fileID: 8300000, guid: 2d9f7a7a2efe44385805306f45724989, type: 3}
-  towerRadius: 4
-  rotateSpeed: 10
-  minCameraDistance: -6
-  fallSpeedSlowest: 2
-  fallSpeedFastest: 7
-  newBlockAppearRateSlowest: 4.5
-  newBlockAppearRateFastest: 2
-  columnsMin: 10
-  columnsMax: 30
-  rowsMin: 5
-  rowsMax: 16
-  blockTypesMin: 4
-  selectorSwapAnimSpeed: 9
