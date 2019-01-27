@@ -314,7 +314,8 @@ public partial class Tower : MonoBehaviour
 	/// <summary> Moves the selector left </summary>
 	public void MoveLeft()
 	{
-		selectorAudioSource.PlayOneShot(selectorMoveAudio[0]);
+		if (Environment.instance.musicController.SfxEnabled)
+			selectorAudioSource.PlayOneShot(selectorMoveAudio[0]);
 		SetSelectorPos(WrapCol(selectorLeftCol + 1), selectorRow);
 		selectorSwapAnimOffset = 0.0f;
 	}
@@ -322,7 +323,9 @@ public partial class Tower : MonoBehaviour
 	/// <summary> Moves the selector right </summary>
 	public void MoveRight()
 	{
-		selectorAudioSource.PlayOneShot(selectorMoveAudio[1]);
+		if (Environment.instance.musicController.SfxEnabled)
+			selectorAudioSource.PlayOneShot(selectorMoveAudio[1]);
+
 		SetSelectorPos(WrapCol(selectorLeftCol - 1), selectorRow);
 		selectorSwapAnimOffset = 0.0f;
 	}
@@ -330,7 +333,9 @@ public partial class Tower : MonoBehaviour
 	/// <summary> Moves the selector up </summary>
 	public void MoveUp()
 	{
-		selectorAudioSource.PlayOneShot(selectorMoveAudio[2]);
+		if (Environment.instance.musicController.SfxEnabled)
+			selectorAudioSource.PlayOneShot(selectorMoveAudio[2]);
+	
 		SetSelectorPos(selectorLeftCol, Mathf.Min(rows - 1, selectorRow + 1));
 		selectorSwapAnimOffset = 0.0f;
 	}
@@ -338,7 +343,9 @@ public partial class Tower : MonoBehaviour
 	/// <summary> Moves the selector down </summary>
 	public void MoveDown()
 	{
-		selectorAudioSource.PlayOneShot(selectorMoveAudio[3]);
+		if (Environment.instance.musicController.SfxEnabled)
+			selectorAudioSource.PlayOneShot(selectorMoveAudio[3]);
+	
 		SetSelectorPos(selectorLeftCol, Mathf.Max(0, selectorRow - 1));
 		selectorSwapAnimOffset = 0.0f;
 	}
@@ -360,7 +367,8 @@ public partial class Tower : MonoBehaviour
 			((belowRight == null) || (belowRight.fallingOffset == 0.0f)))
 		{
 			// Play switch sound
-			selectorAudioSource.PlayOneShot(selectorSwitchAudio[(selectorLeftCol & 1)]);
+			if (Environment.instance.musicController.SfxEnabled)
+				selectorAudioSource.PlayOneShot(selectorSwitchAudio[(selectorLeftCol & 1)]);
 
 			// Swap the blocks
 			blocks[(selectorRow * columns) + selectorLeftCol] = oldRight;
@@ -480,6 +488,9 @@ public partial class Tower : MonoBehaviour
 	/// <param name="_stopCurrentAudio"> When <c>true</c>, stops (interrupts) any currently playing audio </param>
 	void PlayBlockAudio(Vector3 _localPosition, AudioClip _audioClip, bool _stopCurrentAudio)
 	{
+		if (!Environment.instance.musicController.SfxEnabled)
+			return;
+
 		AudioSource audioSourceToUse;
 
 		// Find closest AudioSource to use

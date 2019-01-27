@@ -211,13 +211,15 @@ public class Environment : MonoBehaviour
 	public void GameOver()
 	{
 		musicController.StopGameMusic();
-		audioSource.PlayOneShot(gameOverAudio);
+		if (musicController.SfxEnabled)
+			audioSource.PlayOneShot(gameOverAudio);
 	}
 
 	public void LevelComplete(bool _quickContinue = false)
 	{
 		musicController.PauseGameMusic();
-		audioSource.PlayOneShot(levelCompleteAudio);
+		if (musicController.SfxEnabled)
+			audioSource.PlayOneShot(levelCompleteAudio);
 		if (_quickContinue)
 			musicController.UnpauseGameMusic();
 	}
@@ -225,11 +227,13 @@ public class Environment : MonoBehaviour
 	public void LevelEnded()
 	{
 		musicController.PauseGameMusic();
-		audioSource.PlayOneShot(levelEndedAudio);
+		if (musicController.SfxEnabled)
+			audioSource.PlayOneShot(levelEndedAudio);
 	}
 
 	public void PlayLevelUpAudio()
 	{
-		audioSource.PlayOneShot(levelUpAudio);
+		if (musicController.SfxEnabled)
+			audioSource.PlayOneShot(levelUpAudio);
 	}
 }

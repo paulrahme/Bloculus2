@@ -117,6 +117,9 @@ public class UIMaster : MonoBehaviour
 	/// <param name="_clipName"> Audio to play </param>
 	public void PlayAudio(AudioClips _clipName)
 	{
+		if (!Environment.instance.musicController.SfxEnabled)
+			return;
+
 		if (_clipName == AudioClips.None)
 			return;
 
