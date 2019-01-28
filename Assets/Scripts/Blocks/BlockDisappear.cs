@@ -13,13 +13,13 @@ public class BlockDisappear : MonoBehaviour
 
 	/// <summary> Creates (or reuses) a disappearing block GameObject </summary>
 	/// <param name="_block"> Block from which to create </param>
-	public static void StartDisappearing(Tower.Block _block, GameObject _disappearPrefab)
+	public static void StartDisappearing(Block _block, GameObject _disappearPrefab)
 	{
 		GameObject gameObj = RecyclePool.RetrieveOrCreate(RecyclePool.PoolTypes.BlockDisappear, _disappearPrefab);
 
 		// Match pos/rot/scale of original block
 		Transform trans = gameObj.transform;
-		Transform blockTrans = _block.gameObj.transform;
+		Transform blockTrans = _block.trans;
 		trans.parent = blockTrans.parent;
 		trans.localPosition = blockTrans.localPosition;
 		trans.localRotation = blockTrans.localRotation;

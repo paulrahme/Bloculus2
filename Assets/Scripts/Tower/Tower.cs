@@ -15,7 +15,7 @@ public partial class Tower : MonoBehaviour
 	[SerializeField] AudioSource audioSourceXnegZneg = null;
 
 	[Header("Prefabs")]
-	[SerializeField] BlockDefinition[] blockDefs = null;
+	[SerializeField] Block.BlockDefinition[] blockDefs = null;
 	public GameObject blockDisappearPrefab = null;
 
 	[Header("Tuning")]
@@ -70,17 +70,16 @@ public partial class Tower : MonoBehaviour
 		if (thisBlocksStack.Count > 0)
 		{
 			Block block = thisBlocksStack.Pop();
-			block.Setup(_blockID, transform, columns, tuning.towerRadius, blockScale, _col, _row);
+			block.Setup(blockDefs[_blockID], _blockID, transform, columns, tuning.towerRadius, blockScale, _col, _row);
 			return block;
 		}
 		else
 		{
 			// Create new block from prefab
-			BlockDefinition blockDef = blockDefs[_blockID];
+			Block.BlockDefinition blockDef = blockDefs[_blockID];
 			GameObject prefab = (blockStyle == 0) ? blockDef.prefabSolid : blockDef.prefabWithInnerShape;
-			GameObject gameObj = Instantiate(prefab) as GameObject;
-			Block block = new Block(gameObj, blockDefs[_blockID]);
-			block.Setup(_blockID, transform, columns, tuning.towerRadius, blockScale, _col, _row);
+			Block block = Instantiate(prefab).GetComponent<Block>();
+			block.Setup(blockDefs[_blockID], _blockID, transform, columns, tuning.towerRadius, blockScale, _col, _row);
 			return block;
 		}
 	}
@@ -90,7 +89,7 @@ public partial class Tower : MonoBehaviour
 	public void RecycleBlock(Block block)
 	{
 		blockPools[block.blockID].Push(block);
-		block.gameObj.SetActive(false);
+		block.gameObject.SetActive(false);
 	}
 
 	#endregion // Block pool
@@ -220,7 +219,7 @@ public partial class Tower : MonoBehaviour
 	}
 	
 	/// <summary> Called from GameMaster's Update() </summary>
-	public void UpdateTower(float _dTime, out int _scoreChainThisFrame)
+	public void UpdateTower(float _dTime, out int _scoreThisFrame)
 	{
 		// Read & react to controls
 		controller.UpdateControls(_dTime, ref controlData);
@@ -237,7 +236,7 @@ public partial class Tower : MonoBehaviour
 
 		UpdateSelectorSwapAnim(_dTime);
 		UpdateNewBlocks(_dTime);
-		_scoreChainThisFrame = UpdateBlocks(_dTime);
+		_scoreThisFrame = UpdateBlocks(_dTime);
 		UpdateRotation(_dTime);
 	}
 	
@@ -378,14 +377,14 @@ public partial class Tower : MonoBehaviour
 			if (oldLeft != null)
 			{
 				oldLeft.col = rightCol;
-				oldLeft.gameObj.transform.localEulerAngles = new Vector3(0.0f, Block.CalcAngleDeg(oldLeft.col, columns), 0.0f);
-				oldLeft.gameObj.transform.localPosition = Block.CalcPosition(oldLeft.col, oldLeft.row, oldLeft.gameObj.transform.localEulerAngles.y, tuning.towerRadius, blockScale);
+				oldLeft.trans.localEulerAngles = new Vector3(0.0f, Block.CalcAngleDeg(oldLeft.col, columns), 0.0f);
+				oldLeft.trans.localPosition = Block.CalcPosition(oldLeft.col, oldLeft.row, oldLeft.trans.localEulerAngles.y, tuning.towerRadius, blockScale);
 			}
 			if (oldRight != null)
 			{
 				oldRight.col = selectorLeftCol;
-				oldRight.gameObj.transform.localEulerAngles = new Vector3(0.0f, Block.CalcAngleDeg(oldRight.col, columns), 0.0f);
-				oldRight.gameObj.transform.localPosition = Block.CalcPosition(oldRight.col, oldRight.row, oldRight.gameObj.transform.localEulerAngles.y, tuning.towerRadius, blockScale);
+				oldRight.trans.localEulerAngles = new Vector3(0.0f, Block.CalcAngleDeg(oldRight.col, columns), 0.0f);
+				oldRight.trans.localPosition = Block.CalcPosition(oldRight.col, oldRight.row, oldRight.trans.localEulerAngles.y, tuning.towerRadius, blockScale);
 			}
 		}
 		
@@ -410,7 +409,7 @@ public partial class Tower : MonoBehaviour
 				Block block = GetBlock(col, rows);
 				if (block != null)
 				{
-					block.gameObj.transform.localScale = new Vector3(blockScale, blockScale, blockScale);
+					block.trans.localScale = new Vector3(blockScale, blockScale, blockScale);
 					if (GetBlock(block.col, block.row - 1) == null)
 						ShiftBlockDown(block);
 					else if (GetBlock(block.col, block.row - 1).blockID == block.blockID)
@@ -467,7 +466,7 @@ public partial class Tower : MonoBehaviour
 		{
 			Block block = GetBlock(col, rows);
 			if (block != null)
-				block.gameObj.transform.localScale = new Vector3(blockScale, blockScale * growScale, blockScale);
+				block.trans.localScale = new Vector3(blockScale, blockScale * growScale, blockScale);
 		}
 	}
 
@@ -537,10 +536,12 @@ public partial class Tower : MonoBehaviour
 						// Should land?
 						else if (block.fallingOffset < 0.0)
 						{
-							PlayBlockAudio(block.gameObj.transform.localPosition, block.blockDef.landingAudio, false);
+							PlayBlockAudio(block.trans.localPosition, block.blockDef.landingAudio, false);
 
 							block.fallingOffset = 0.0f;
-							block.gameObj.transform.localPosition = new Vector3(block.gameObj.transform.localPosition.x, (block.row * blockScale), block.gameObj.transform.localPosition.z);
+							Vector3 pos = block.trans.localPosition;
+							pos.y = block.row * blockScale;
+							block.trans.localPosition = pos;
 						}
 					}
 					
@@ -549,9 +550,9 @@ public partial class Tower : MonoBehaviour
 					{
 						// Falling normally
 						block.fallingOffset -= fallSpeed * _dTime;
-						Vector3 newPos = block.gameObj.transform.localPosition;
-						newPos.y = (block.row * blockScale) + (block.fallingOffset * blockScale);
-						block.gameObj.transform.localPosition = newPos;
+						Vector3 pos = block.trans.localPosition;
+						pos.y = (block.row * blockScale) + (block.fallingOffset * blockScale);
+						block.trans.localPosition = pos;
 					}
 				}
 			}
@@ -598,32 +599,59 @@ public partial class Tower : MonoBehaviour
 						// Mark for deletion if there was a match
 						if (delete)
 							blocksToDelete.Add(BlockIdx(col, row));
+						else
+							block.SetFallingCombo(false);
 					}
 				}
 			}
 		}
 
 		// Delete blocks & handle scoring
-		int scoreChain = 0;
-		Vector3 scorePopupPos = Vector3.zero;
-		foreach (int blockIdx in blocksToDelete)
+		int scoreChain = 0, comboChain = 0;
+		Vector3 scorePopupPos = Helpers.vec3Zero; // TODO: use a persistent popupPos via UIMaster/UI_HUD instead
+		int length = blocksToDelete.Count;
+		for (int i = 0; i < length; ++i)
 		{
+			int blockIdx = blocksToDelete[i];
 			Block blockToDelete = blocks[blockIdx];
 
 			// Accumulate score 
 			++scoreChain;
-			scorePopupPos += blockToDelete.gameObj.transform.position;
+			scorePopupPos += blockToDelete.trans.position;
+
+			// Was block already falling from a previous match?
+			if (blockToDelete.isInFallingCombo)
+			{
+				++comboChain;
+				blockToDelete.SetFallingCombo(false);
+			}
 			
 			// Start block disappearing
 			Color blockColor = blockToDelete.GetMainColor();
 			ClearBlock(blockToDelete, true);
-			
-			// If it's a combo, add falling ring
+
+			// If multiple matches this frame, add falling ring
 			if (scoreChain > 2)
 			{
 				// Add 3D object to fall out of the bottom of the tower
-				Transform blockTrans = blockToDelete.gameObj.transform;
+				Transform blockTrans = blockToDelete.trans;
 				Environment.instance.SpawnFallingRing(blockTrans.position, blockScale * tuning.fallingRingScaleMult, blockColor);
+			}
+
+			// Find any blocks resting on top of it, to set into falling combo state
+			Block blockAbove = blockToDelete;
+			while ((blockAbove != null) && (blockAbove.row < rows - 1))
+			{
+				blockAbove = GetBlock(blockAbove.col, blockAbove.row + 1);
+				if ((blockAbove != null) && (blockAbove.fallingOffset == 0f))
+					blockAbove.SetFallingCombo(true);
+			}
+
+
+			// If it's a combo from a previous match, show FX
+			if (comboChain > 0)
+			{
+				// TODO: Spawn combo PFX on block
 			}
 
 			// Add background pulse
@@ -656,7 +684,7 @@ public partial class Tower : MonoBehaviour
 			}
 		}
 
-		return scoreChain;
+		return scoreChain * comboChain;
 	}
 
 	#endregion // Block logic
