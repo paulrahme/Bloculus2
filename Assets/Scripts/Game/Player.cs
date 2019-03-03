@@ -2,17 +2,20 @@
 
 public class Player
 {
+	public enum States { Gameplay, GameOver };
+
 	#region Variables
 
 	string playerName;
 	GameMaster.ControllerTypes controllerType;
-	Tower tower;
+	public Tower tower { get; private set; }
 	UI_PlayerHUD hud;
 	int score;
 	float startingLevelProgress;
 	int level;
 	int levelMax;
 	float levelProgress;
+	public States state { get; private set; }
 
 	#endregion Variables
 
@@ -58,6 +61,26 @@ public class Player
 		startingLevelProgress = _startingLevelProgress;
 		levelMax = GameMaster.Tuning.levelMax;
 		SetLevel(_startingLevel, true);
+
+		SetState(States.Gameplay);
+	}
+
+	/// <summary> Sets a new state </summary>
+	/// <param name="_state"> State to set </param>
+	public void SetState(States _state)
+	{
+		state = _state;
+
+		switch (state)
+		{
+			case States.Gameplay:
+				hud.SetGameOver(false);
+				break;
+
+			case States.GameOver:
+				hud.SetGameOver(true);
+				break;
+		}
 	}
 
 	/// <summary> Restarts the current game </summary>
@@ -65,6 +88,7 @@ public class Player
 	{
 		SetScore(0);
 		tower.ReplayGame(level);
+		SetState(States.Gameplay);
 	}
 
 	/// <summary> Destroy spawned elements </summary>

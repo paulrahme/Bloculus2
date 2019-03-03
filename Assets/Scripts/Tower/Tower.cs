@@ -243,9 +243,7 @@ public partial class Tower : MonoBehaviour
 	/// <summary> Restarts with the previous settings </summary>
 	public void ReplayGame(int _level)
 	{
-		ClearAllBlocks();
 		RestoreSpeeds(_level, true);
-		CreateRandomBlocks();
 	}
 
 	/// <summary> Sets the speeds & tower layout </summary>
@@ -419,7 +417,7 @@ public partial class Tower : MonoBehaviour
 						ClearBlock(GetBlock(block.col, block.row - 1), true);
 					}
 					else
-						GameMaster.instance.GameOver();
+						GameMaster.instance.GameOver(this);
 				}
 			}
 

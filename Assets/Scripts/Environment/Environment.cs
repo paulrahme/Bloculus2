@@ -208,11 +208,15 @@ public class Environment : MonoBehaviour
 
 	#endregion // Shockwaves
 
-	public void GameOver()
+	/// <summary> Called when a player gets game over </summary>
+	/// <param name="_allPlayers"> True if all players have finished, false if one or more still alive </param>
+	public void GameOver(bool _allPlayers)
 	{
-		musicController.StopGameMusic();
 		if (musicController.SfxEnabled)
 			audioSource.PlayOneShot(gameOverAudio);
+
+		if (_allPlayers)
+			musicController.StopGameMusic();
 	}
 
 	public void LevelComplete(bool _quickContinue = false)

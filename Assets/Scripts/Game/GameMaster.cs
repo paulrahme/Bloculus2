@@ -71,9 +71,12 @@ public partial class GameMaster : MonoBehaviour
 	/// <param name='_dTime'> Time elapsed since last Update() </param>
 	void UpdateGameplay(float _dTime)
 	{
-		// Update each player/tower
+		// Update each player (and their tower)
 		for (int i = 0; i < players.Length; ++i)
-			players[i].UpdateGameplay(_dTime, gameMode);
+		{
+			if (players[i].state == Player.States.Gameplay)
+				players[i].UpdateGameplay(_dTime, gameMode);
+		}
 
 		// Update ground
 		Environment.instance.UpdateEffects(_dTime);
@@ -231,11 +234,24 @@ public partial class GameMaster : MonoBehaviour
 	}
 
 	/// <summary> Starts the Game Over sequence </summary>
-	public void GameOver()
+	public void GameOver(Tower _tower)
 	{
-		Environment.instance.GameOver();
-		UIMaster.instance.GameOver();
-		SetGameState(GameStates.GameOver);
+		bool allPlayersFinished = true;
+		for (int i = 0; i < players.Length; ++i)
+		{
+			Player player = players[i];
+			if (player.tower == _tower)
+				player.SetState(Player.States.GameOver);
+			else
+				allPlayersFinished &= (player.state == Player.States.GameOver);
+		}
+
+		Environment.instance.GameOver(allPlayersFinished);
+		if (allPlayersFinished)
+		{
+			UIMaster.instance.GameOver();
+			SetGameState(GameStates.GameOver);
+		}
 	}
 
 	/// <summary> Destroys all towers and resets game state </summary>
