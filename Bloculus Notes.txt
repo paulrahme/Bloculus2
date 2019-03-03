@@ -9,7 +9,7 @@ Common:
 [DONE] Rewrite level progress to update per player
 [DONE] Make level complete trigger from the player
 [DONE] Combos: When blocks disappear, any above them that fall start glowing & can do combos when they land.
-- Make game over trigger from the player (checked from GameMaster)
+[DONE] Make game over trigger from the player (checked from GameMaster)
 - Make initial version of Level Up UI/PFX
 - When it changes scene completely (eg. level 7->8), show a mini-EOR type screen with bonus countdown.
 
