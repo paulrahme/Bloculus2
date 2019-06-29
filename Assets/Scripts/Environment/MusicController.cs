@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class MusicController : MonoBehaviour
 {
@@ -28,11 +28,29 @@ public class MusicController : MonoBehaviour
 	/// <summary> If not initialised, loads saved settings </summary>
 	void LoadIfNecessary()
 	{
+		// Not yet loaded?
 		if (fullVolume < 0)
 		{
+			// Use setting from Unity editor as full volume
 			fullVolume = audioSource.volume;
-			if (PlayerPrefs.GetInt(Constants.PPKeys.MusicEnabled.ToString(), 1) == 0) { ToggleMusic(); }
-			SfxEnabled = (PlayerPrefs.GetInt(Constants.PPKeys.SoundEnabled.ToString(), 1) == 0);
+
+			// Load music/sound settings?
+			if (PlayerPrefs.HasKey(Constants.PPKeys.MusicEnabled.ToString()))
+			{
+				bool musicEnabledSetting = (PlayerPrefs.GetInt(Constants.PPKeys.MusicEnabled.ToString(), 1) == 1);
+				if (MusicEnabled != musicEnabledSetting)
+					ToggleMusic();
+
+				bool sfxEnabledSetting = (PlayerPrefs.GetInt(Constants.PPKeys.SoundEnabled.ToString(), 1) == 0);
+				if (SfxEnabled != sfxEnabledSetting)
+					ToggleSFX();
+			}
+			else
+			{
+				// No saved settings, default both to on and save now
+				MusicEnabled = SfxEnabled = true;
+				SavePlayerPrefs();
+			}
 		}
 	}
 
@@ -127,9 +145,8 @@ public class MusicController : MonoBehaviour
 			else
 				audioSource.Stop();
 		}
-	
-		PlayerPrefs.SetInt(Constants.PPKeys.MusicEnabled.ToString(), audioSource.mute ? 0 : 1);
-		PlayerPrefs.Save();
+
+		SavePlayerPrefs();	
 
 		return MusicEnabled;
 	}
@@ -140,9 +157,16 @@ public class MusicController : MonoBehaviour
 	{
 		SfxEnabled = !SfxEnabled;
 
-		PlayerPrefs.SetInt(Constants.PPKeys.SoundEnabled.ToString(), SfxEnabled ? 1 : 0);
-		PlayerPrefs.Save();
+		SavePlayerPrefs();
 
 		return SfxEnabled;
+	}
+
+	/// <summary> Saves the current audio settings </summary>
+	void SavePlayerPrefs()
+	{
+		PlayerPrefs.SetInt(Constants.PPKeys.MusicEnabled.ToString(), MusicEnabled ? 1 : 0);
+		PlayerPrefs.SetInt(Constants.PPKeys.SoundEnabled.ToString(), SfxEnabled ? 1 : 0);
+		PlayerPrefs.Save();
 	}
 }

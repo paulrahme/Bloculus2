@@ -2,6 +2,6 @@
 public static class CurrentBundleVersion
 {
 	public static readonly string Version = "2.0";
-	public static readonly string BuildDate = "2018-06-16";
+	public static readonly string BuildDate = "2019-06-29";
 }
 
